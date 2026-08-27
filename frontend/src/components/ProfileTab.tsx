@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, Settings, Shield, HelpCircle, Info, LogOut, ChevronRight, Activity } from 'lucide-react';
+import { User, Settings, Shield, HelpCircle, Info, LogOut, ChevronRight, Activity, Leaf } from 'lucide-react';
 
 interface ProfileTabProps {
   onLogout: () => void;
@@ -22,6 +22,18 @@ export default function ProfileTab({ onLogout, onOpenDetail }: ProfileTabProps) 
       </div>
 
       <div className="space-y-3">
+        <div className="rounded-[20px] bg-white overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
+          <button onClick={() => onOpenDetail('carbon')} className="w-full flex justify-between items-center p-5 hover:bg-[#F4FAF5] transition-colors">
+            <div className="flex items-center space-x-3 text-[#1B331B]">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#E8F1EA]">
+                <Leaf className="h-5 w-5 text-[#4CAF50]" />
+              </div>
+              <span className="font-semibold text-[15px]">Karbon Ayak İzi</span>
+            </div>
+            <ChevronRight className="h-5 w-5 text-[#8EA694]" />
+          </button>
+        </div>
+
         <div className="rounded-[20px] bg-white overflow-hidden shadow-[0_4px_20px_rgb(0,0,0,0.03)]">
           <button onClick={() => onOpenDetail('sensors-list')} className="w-full flex justify-between items-center p-5 hover:bg-[#F4FAF5] transition-colors">
             <div className="flex items-center space-x-3 text-[#1B331B]">

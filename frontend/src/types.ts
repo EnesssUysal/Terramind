@@ -32,6 +32,31 @@ export interface Field {
     next: string;
     coverage: number;
   };
+  // NDVI (Normalized Difference Vegetation Index): 0-1 arası bitki sağlığı skoru.
+  // 0.7+ Sağlıklı, 0.4-0.7 Riskli, <0.4 Kurak/Kritik.
+  ndvi: number;
+  // Son 7 günlük nem & NDVI geçmişi — Analiz ekranındaki gerçek grafikler için.
+  history: { day: string; moisture: number; ndvi: number }[];
+}
+
+// Vitrin 1: AI Su Tasarruf Motoru
+export interface WaterSavingEvent {
+  id: string;
+  title: string;
+  detail: string;
+  savedLiters: number;
+  time: string;
+  field: string;
+  type: 'saving' | 'irrigation' | 'alert';
+}
+
+// Vitrin 3: Karbon Ayak İzi (COP31 Vizyonu)
+export interface CarbonFootprintData {
+  farmAverageTonPerHa: number;
+  regionAveragePerHa: number;
+  // Traktör saati başına ortalama emisyon (ton CO2/saat)
+  tractorEmissionFactor: number;
+  history: { month: string; farm: number; region: number }[];
 }
 
 export interface WeatherData {

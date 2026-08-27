@@ -1,11 +1,21 @@
-import { Field, WeatherData, NotificationItem, SensorItem, AlertItem, Task } from './types';
+import { Field, WeatherData, NotificationItem, SensorItem, AlertItem, Task, WaterSavingEvent, CarbonFootprintData } from './types';
 
 export const mockFields: Field[] = [
   {
     id: '1',
     name: 'Kuzey Tarlası',
-    location: 'Konya, Çumra',
+    location: 'Malatya, Yeşilyurt',
     area: '120 Dönüm',
+    ndvi: 0.81,
+    history: [
+      { day: 'Pzt', moisture: 38, ndvi: 0.76 },
+      { day: 'Sal', moisture: 39, ndvi: 0.77 },
+      { day: 'Çar', moisture: 41, ndvi: 0.79 },
+      { day: 'Per', moisture: 40, ndvi: 0.78 },
+      { day: 'Cum', moisture: 43, ndvi: 0.80 },
+      { day: 'Cmt', moisture: 41, ndvi: 0.80 },
+      { day: 'Paz', moisture: 42, ndvi: 0.81 },
+    ],
     lastSync: '2 dk önce',
     status: 'Sağlıklı',
     aiSummary: 'Kuzey Tarlası güney bölgesinde son 24 saatte %8 toprak nemi kaybetti.',
@@ -30,8 +40,18 @@ export const mockFields: Field[] = [
   {
     id: '2',
     name: 'Güney Bahçesi',
-    location: 'Antalya, Kumluca',
+    location: 'Malatya, Doğanşehir',
     area: '45 Dönüm',
+    ndvi: 0.55,
+    history: [
+      { day: 'Pzt', moisture: 35, ndvi: 0.62 },
+      { day: 'Sal', moisture: 33, ndvi: 0.60 },
+      { day: 'Çar', moisture: 31, ndvi: 0.58 },
+      { day: 'Per', moisture: 30, ndvi: 0.57 },
+      { day: 'Cum', moisture: 29, ndvi: 0.56 },
+      { day: 'Cmt', moisture: 28, ndvi: 0.55 },
+      { day: 'Paz', moisture: 28, ndvi: 0.55 },
+    ],
     lastSync: '15 dk önce',
     status: 'Dikkat',
     aiSummary: 'Yarın yağmur bekleniyor, bu nedenle Güney Bahçesi için sulama önerilmiyor.',
@@ -56,8 +76,18 @@ export const mockFields: Field[] = [
   {
     id: '3',
     name: 'Doğu Serası',
-    location: 'Mersin, Tarsus',
+    location: 'Malatya, Battalgazi',
     area: '12 Dönüm',
+    ndvi: 0.32,
+    history: [
+      { day: 'Pzt', moisture: 27, ndvi: 0.48 },
+      { day: 'Sal', moisture: 24, ndvi: 0.44 },
+      { day: 'Çar', moisture: 21, ndvi: 0.40 },
+      { day: 'Per', moisture: 19, ndvi: 0.37 },
+      { day: 'Cum', moisture: 17, ndvi: 0.35 },
+      { day: 'Cmt', moisture: 16, ndvi: 0.33 },
+      { day: 'Paz', moisture: 15, ndvi: 0.32 },
+    ],
     lastSync: '1 saat önce',
     status: 'Kritik',
     aiSummary: 'Doğu Serasında toprak nemi kritik seviyede.',
@@ -88,6 +118,12 @@ export const mockTasks: Task[] = [
 ];
 
 export const mapLegends: Record<string, { label: string; color: string; desc: string }[]> = {
+  'NDVI (Uydu)': [
+    { label: 'Sağlıklı Bitki Örtüsü', color: 'rgba(76, 175, 80, 0.6)', desc: 'NDVI > 0.7 — optimum fotosentez.' },
+    { label: 'Orta Yoğunluk', color: 'rgba(255, 235, 59, 0.6)', desc: 'NDVI 0.55-0.7 — takip önerilir.' },
+    { label: 'Stres Belirtisi', color: 'rgba(255, 152, 0, 0.6)', desc: 'NDVI 0.4-0.55 — su/besin stresi olası.' },
+    { label: 'Kuraklık / Kritik', color: 'rgba(244, 67, 54, 0.6)', desc: 'NDVI < 0.4 — acil müdahale gerekli.' }
+  ],
   'Toprak Nemi': [
     { label: 'Sağlıklı Nem', color: 'rgba(76, 175, 80, 0.6)', desc: 'Optimum su seviyesi.' },
     { label: 'Hafif Kuru', color: 'rgba(255, 235, 59, 0.6)', desc: 'Sulama planlanmalı.' },
@@ -127,6 +163,7 @@ export const mapLegends: Record<string, { label: string; color: string; desc: st
 };
 
 export const mapOverlays: Record<string, string[]> = {
+  'NDVI (Uydu)': ['rgba(76, 175, 80, 0.4)', 'rgba(255, 152, 0, 0.4)', 'rgba(244, 67, 54, 0.4)', 'rgba(76, 175, 80, 0.4)'],
   'Toprak Nemi': ['rgba(244, 67, 54, 0.4)', 'rgba(76, 175, 80, 0.4)', 'rgba(255, 235, 59, 0.4)', 'rgba(76, 175, 80, 0.4)'],
   'Su': ['rgba(255, 152, 0, 0.4)', 'rgba(33, 150, 243, 0.4)', 'rgba(33, 150, 243, 0.4)', 'rgba(0, 188, 212, 0.4)'],
   'pH': ['rgba(76, 175, 80, 0.4)', 'rgba(255, 235, 59, 0.4)', 'rgba(76, 175, 80, 0.4)', 'rgba(255, 152, 0, 0.4)'],
@@ -188,6 +225,60 @@ export const mockAlerts: AlertItem[] = [
 export const aiMessages = [
   { id: 1, text: "Merhaba, ben TerraMind Asistan. Tarlalarınızla ilgili size nasıl yardımcı olabilirim?", sender: 'ai' }
 ];
+
+// Vitrin 1: AI Su Tasarruf Motoru — HomeTab ve AnalysisTab'de kullanılır
+export const mockWaterSavingEvents: WaterSavingEvent[] = [
+  {
+    id: 'W1',
+    title: 'Sulama İptal Edildi',
+    detail: '18 saat sonra yağmur bekleniyor, AI sulamayı otomatik iptal etti.',
+    savedLiters: 420,
+    time: '2 saat önce',
+    field: 'Kuzey Tarlası',
+    type: 'saving',
+  },
+  {
+    id: 'W2',
+    title: 'Akıllı Sulama Devrede',
+    detail: 'Toprak nemi %28 eşik değerinin altına düştü, damla sulama başlatıldı.',
+    savedLiters: 0,
+    time: '5 saat önce',
+    field: 'Güney Bahçesi',
+    type: 'irrigation',
+  },
+  {
+    id: 'W3',
+    title: 'Sulama Süresi Kısaltıldı',
+    detail: 'Nem seviyesi hedefe ulaştı, program 40 dakika erken durduruldu.',
+    savedLiters: 180,
+    time: 'Dün, 18:20',
+    field: 'Kuzey Tarlası',
+    type: 'saving',
+  },
+  {
+    id: 'W4',
+    title: 'Kritik Kuraklık Uyarısı',
+    detail: 'Doğu Serasında nem %15 seviyesine geriledi, manuel müdahale gerekiyor.',
+    savedLiters: 0,
+    time: 'Dün, 09:10',
+    field: 'Doğu Serası',
+    type: 'alert',
+  },
+];
+
+// Vitrin 3: Karbon Ayak İzi (COP31 Vizyonu) — CarbonFootprintScreen'de kullanılır
+export const mockCarbonFootprint: CarbonFootprintData = {
+  farmAverageTonPerHa: 3.2,
+  regionAveragePerHa: 4.8,
+  tractorEmissionFactor: 0.08, // ton CO2 / traktör saati
+  history: [
+    { month: 'Nis', farm: 3.6, region: 4.9 },
+    { month: 'May', farm: 3.4, region: 4.8 },
+    { month: 'Haz', farm: 3.1, region: 4.7 },
+    { month: 'Tem', farm: 2.9, region: 4.8 },
+    { month: 'Ağu', farm: 3.0, region: 4.9 },
+  ],
+};
 
 
 

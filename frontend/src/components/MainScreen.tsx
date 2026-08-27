@@ -20,6 +20,7 @@ import SettingsScreen from './SettingsScreen';
 import PrivacyScreen from './PrivacyScreen';
 import SupportScreen from './SupportScreen';
 import AboutScreen from './AboutScreen';
+import CarbonFootprintScreen from './CarbonFootprintScreen';
 
 import { mockFields } from '../mockData';
 
@@ -71,6 +72,8 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
         return <SupportScreen onBack={handleCloseDetail} />;
       case 'about':
         return <AboutScreen onBack={handleCloseDetail} />;
+      case 'carbon':
+        return <CarbonFootprintScreen onBack={handleCloseDetail} />;
       default:
         return <DetailScreen title={detailPage!} onBack={handleCloseDetail} />;
     }
