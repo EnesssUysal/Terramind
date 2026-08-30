@@ -21,6 +21,7 @@ import PrivacyScreen from './PrivacyScreen';
 import SupportScreen from './SupportScreen';
 import AboutScreen from './AboutScreen';
 import CarbonFootprintScreen from './CarbonFootprintScreen';
+import AddFieldScreen from './AddFieldScreen';
 
 import { mockFields } from '../mockData';
 
@@ -74,6 +75,20 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
         return <AboutScreen onBack={handleCloseDetail} />;
       case 'carbon':
         return <CarbonFootprintScreen onBack={handleCloseDetail} />;
+      case 'add-field':
+        return (
+          <AddFieldScreen 
+            onBack={handleCloseDetail} 
+            onSave={(newField) => {
+              const saved = localStorage.getItem('terramind_user_fields');
+              const currentFields = saved ? JSON.parse(saved) : [];
+              const updatedFields = [newField, ...currentFields];
+              localStorage.setItem('terramind_user_fields', JSON.stringify(updatedFields));
+              setDetailPage(null);
+              setCurrentTab('fields');
+            }} 
+          />
+        );
       default:
         return <DetailScreen title={detailPage!} onBack={handleCloseDetail} />;
     }
@@ -103,7 +118,7 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
                 onSwitchToFields={() => setCurrentTab('fields')}
               />
             )}
-            {currentTab === 'fields' && <FieldsTab selectedFieldId={selectedFieldId} onSelectField={setSelectedFieldId} onOpenDetail={(title) => { setSelectedFieldId(title); setCurrentTab('analysis'); }} />}
+            {currentTab === 'fields' && <FieldsTab selectedFieldId={selectedFieldId} onSelectField={setSelectedFieldId} onOpenDetail={(title) => { setSelectedFieldId(title); setCurrentTab('analysis'); }} onAddNewField={() => setDetailPage('add-field')} />}
             {currentTab === 'analysis' && <AnalysisTab selectedField={selectedField} />}
             {currentTab === 'ai' && <AiTab initialContext={aiContext} />}
             {currentTab === 'profile' && <ProfileTab onLogout={onLogout} onOpenDetail={setDetailPage} />}

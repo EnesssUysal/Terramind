@@ -11,6 +11,7 @@ export interface FieldItem {
   crop: string;
   ndviScore?: number;
   moisture?: number;
+  polygon?: [number, number][];
 }
 
 const DEFAULT_FIELDS: FieldItem[] = [
@@ -28,7 +29,12 @@ const DEFAULT_FIELDS: FieldItem[] = [
   },
 ];
 
-export const FieldsTab: React.FC = () => {
+export const FieldsTab: React.FC<{
+  selectedFieldId?: string;
+  onSelectField?: (id: string) => void;
+  onOpenDetail?: (title: string) => void;
+  onAddNewField?: () => void;
+}> = ({ selectedFieldId, onSelectField, onOpenDetail, onAddNewField }) => {
   const [fields, setFields] = useState<FieldItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -81,14 +87,23 @@ export const FieldsTab: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white px-5 py-3 rounded-2xl shadow-lg shadow-emerald-500/20 text-center">
-              <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Kayıtlı Tarla</p>
-              <p className="text-2xl font-black">{fields.length}</p>
-            </div>
-            <div className="bg-gradient-to-br from-sky-500 to-blue-600 text-white px-5 py-3 rounded-2xl shadow-lg shadow-blue-500/20 text-center">
-              <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Toplam Arazi</p>
-              <p className="text-2xl font-black">{totalArea.toFixed(1)} <span className="text-xs font-medium">Dönüm</span></p>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <button
+              onClick={onAddNewField}
+              className="w-full sm:w-auto px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2"
+            >
+              <span className="text-xl leading-none">+</span>
+              Yeni Tarla Ekle
+            </button>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="bg-gradient-to-br from-emerald-500 to-teal-600 text-white px-5 py-3 rounded-2xl shadow-lg shadow-emerald-500/20 text-center flex-1">
+                <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Kayıtlı Tarla</p>
+                <p className="text-2xl font-black">{fields.length}</p>
+              </div>
+              <div className="bg-gradient-to-br from-sky-500 to-blue-600 text-white px-5 py-3 rounded-2xl shadow-lg shadow-blue-500/20 text-center flex-1">
+                <p className="text-[10px] uppercase font-bold tracking-wider opacity-80">Toplam Arazi</p>
+                <p className="text-2xl font-black">{totalArea.toFixed(1)} <span className="text-xs font-medium">Dönüm</span></p>
+              </div>
             </div>
           </div>
         </div>
@@ -107,8 +122,14 @@ export const FieldsTab: React.FC = () => {
         {/* Tarla Kartları Izgarası */}
         {filteredFields.length === 0 ? (
           <div className="p-12 text-center bg-white/60 rounded-3xl border border-dashed border-emerald-200">
-            <p className="text-slate-500 text-base font-medium">Kayıtlı tarla bulunamadı.</p>
-            <p className="text-xs text-slate-400 mt-1">Ana sayfadaki formu kullanarak yeni tarlalar ekleyebilirsiniz.</p>
+            <p className="text-slate-500 text-base font-medium mb-4">Kayıtlı tarla bulunamadı.</p>
+            <button
+              onClick={onAddNewField}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-md transition-colors"
+            >
+              <span>+</span>
+              Şimdi İlk Tarlanızı Ekleyin
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
