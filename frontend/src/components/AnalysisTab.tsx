@@ -5,7 +5,7 @@ import { mockWaterSavingEvents } from '../mockData';
 
 interface AnalysisTabProps {
   selectedField: Field;
-  fields: Field[]; // SISTEME KAYITLI GERÇEK TARLALAR BURADAN GELECEK
+  fields: Field[];
 }
 
 type SimStage = 'idle' | 'crisis' | 'warning';
@@ -16,22 +16,18 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
   const [activeFieldId, setActiveFieldId] = useState(selectedField.id);
   const [simStage, setSimStage] = useState<SimStage>('idle');
 
-  // Dışarıdan veya ana ekrandan yeni tarla seçildiğinde ekranı otomatik senkronize et
   useEffect(() => {
     setActiveFieldId(selectedField.id);
     setSimStage('idle');
   }, [selectedField.id]);
 
-  // Şu an ekranda analiz edilen güncel tarla objesini GERÇEK tarlalar (fields) içinden bul
   const activeField = fields.find(f => f.id === activeFieldId) || selectedField;
   const isCrisis = simStage === 'crisis' || simStage === 'warning';
   const isWarning = simStage === 'warning';
 
-  // --- 1. SEÇİLİ TARLAYA ÖZEL DİNAMİK MATEMATİK ---
   const fieldEvents = mockWaterSavingEvents.filter(e => e.field === activeField.name);
   const realSavedLiters = fieldEvents.reduce((sum, e) => sum + e.savedLiters, 0);
   
-  // Boş tarla seçildiğinde sıfır görünmemesi için akıllı tahmin (NDVI üzerinden)
   const displaySavedLiters = realSavedLiters > 0 ? realSavedLiters : Math.floor(activeField.ndvi * 500);
   const currentMoisture = isCrisis ? CRITICAL_MOISTURE : activeField.sensors?.moisture?.value || 42;
 
@@ -39,7 +35,6 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
   const monthlyProjectedSavings = (displaySavedLiters * 15 * COST_PER_LITER_TL).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
   const expectedYieldIncrease = Math.max(0, ((activeField.ndvi - 0.4) * 35)).toFixed(1);
 
-  // --- 2. SİMÜLASYON KONTROLLERİ ---
   const runSimulation = () => {
     if (simStage !== 'idle') return;
     setSimStage('crisis');
@@ -48,6 +43,32 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
   const handleManualOverride = () => {
     if (simStage === 'crisis') {
       setSimStage('warning');
+    }
+  };
+
+  // --- SESLİ ASİSTAN FONKSİYONU ---
+  const playSummaryAudio = () => {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel(); // Önceki sesi durdur
+
+      // Duruma göre metni dinamik olarak oluştur
+      let statusText = 'Tarlada her şey yolunda, ideal koşullar korunuyor.';
+      if (isWarning) {
+        statusText = 'Mantar ve kök çürümesi riski tespit edildi. Külleme hastalığına karşı koruyucu ilaçlama şiddetle önerilir.';
+      } else if (isCrisis) {
+        statusText = 'Bölgenizde fırtına bekleniyor. Sulama iptal edilerek otonom tasarruf moduna geçildi.';
+      }
+
+      const summaryText = `${activeField.name} için güncel analiz raporu. Toprak nemi yüzde ${currentMoisture} seviyesindedir. ${statusText} Beklenen rekolte artışı yüzde ${expectedYieldIncrease}.`;
+
+      const utterance = new SpeechSynthesisUtterance(summaryText);
+      utterance.lang = 'tr-TR';
+      utterance.rate = 1.0; // Okuma hızı
+      utterance.pitch = 1.1; // Ses tonu (biraz daha enerjik)
+
+      window.speechSynthesis.speak(utterance);
+    } else {
+      alert("Tarayıcınız sesli okuma özelliğini desteklemiyor.");
     }
   };
 
@@ -70,7 +91,6 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
         </div>
       </div>
 
-      {/* YENİ MODÜL: GERÇEK KAYITLI TARLALARI LİSTELEYEN SEÇİCİ */}
       <div className="flex space-x-3 overflow-x-auto pb-4 mb-4 scrollbar-hide">
         {fields.map(field => {
           const isActive = activeFieldId === field.id;
@@ -236,8 +256,11 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
               <p className="text-emerald-100/70 text-sm font-medium">Bütün analizleri tek tuşla, çiftçi dostu sesli asistandan dinleyin.</p>
             </div>
           </div>
-          <button className="w-full md:w-auto bg-emerald-500 hover:bg-emerald-400 text-[#0F2A1B] px-6 py-3 rounded-xl font-black text-sm transition-colors shadow-lg">
-            ▶ Durumu Dinle (0:45 sn)
+          <button 
+            onClick={playSummaryAudio}
+            className="w-full md:w-auto bg-emerald-500 hover:bg-emerald-400 text-[#0F2A1B] px-6 py-3 rounded-xl font-black text-sm transition-colors shadow-lg active:scale-95"
+          >
+            ▶ Durumu Dinle (Canlı)
           </button>
         </div>
 
