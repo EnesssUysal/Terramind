@@ -1,226 +1,246 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Field } from '../types';
-import { TrendingUp, Calendar, Filter, Droplets, CloudRain, TrendingDown, AlertTriangle, Zap, RotateCcw, Sparkles } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts';
+import { CloudRain, AlertTriangle, Zap, RotateCcw, Sprout, Bug, ShieldAlert, CircleDollarSign, Fingerprint, MapPin } from 'lucide-react';
 import { mockWaterSavingEvents } from '../mockData';
-import SmartAiControl from './SmartAiControl';
-import AiExplainability from './AiExplainability';
-import AiForecastTimeline from './AiForecastTimeline';
-import ImpactTranslator from './ImpactTranslator';
 
 interface AnalysisTabProps {
   selectedField: Field;
+  fields: Field[]; // SISTEME KAYITLI GERÇEK TARLALAR BURADAN GELECEK
 }
 
-const eventIcon = {
-  saving: CloudRain,
-  irrigation: Droplets,
-  alert: AlertTriangle,
-};
+type SimStage = 'idle' | 'crisis' | 'warning';
 
-const eventIconStyle = {
-  saving: 'bg-[#4CAF50]/10 text-[#4CAF50]',
-  irrigation: 'bg-[#2196F3]/10 text-[#2196F3]',
-  alert: 'bg-[#F44336]/10 text-[#F44336]',
-};
+const CRITICAL_MOISTURE = 20;
 
-// Kriz simülasyonu adımları
-type SimStage = 'idle' | 'crisis' | 'solved';
-
-const CRITICAL_MOISTURE = 15;
-const CRITICAL_THRESHOLD = 20;
-
-export default function AnalysisTab({ selectedField }: AnalysisTabProps) {
+export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps) {
+  const [activeFieldId, setActiveFieldId] = useState(selectedField.id);
   const [simStage, setSimStage] = useState<SimStage>('idle');
-  const isCrisis = simStage === 'crisis' || simStage === 'solved';
-  const isSolved = simStage === 'solved';
 
-  const fieldEvents = mockWaterSavingEvents.filter(e => e.field === selectedField.name);
-  const totalSaved = fieldEvents.reduce((sum, e) => sum + e.savedLiters, 0);
+  // Dışarıdan veya ana ekrandan yeni tarla seçildiğinde ekranı otomatik senkronize et
+  useEffect(() => {
+    setActiveFieldId(selectedField.id);
+    setSimStage('idle');
+  }, [selectedField.id]);
 
-  // Kriz tetiklendiğinde grafiğin son noktasını kritik seviyeye çeker
-  const chartHistory = useMemo(() => {
-    if (!isCrisis) return selectedField.history;
-    return selectedField.history.map((h, i) =>
-      i === selectedField.history.length - 1 ? { ...h, moisture: CRITICAL_MOISTURE } : h
-    );
-  }, [isCrisis, selectedField.history]);
+  // Şu an ekranda analiz edilen güncel tarla objesini GERÇEK tarlalar (fields) içinden bul
+  const activeField = fields.find(f => f.id === activeFieldId) || selectedField;
+  const isCrisis = simStage === 'crisis' || simStage === 'warning';
+  const isWarning = simStage === 'warning';
 
-  const currentMoisture = isCrisis
-    ? CRITICAL_MOISTURE
-    : selectedField.history[selectedField.history.length - 1]?.moisture ?? selectedField.sensors.moisture.value;
+  // --- 1. SEÇİLİ TARLAYA ÖZEL DİNAMİK MATEMATİK ---
+  const fieldEvents = mockWaterSavingEvents.filter(e => e.field === activeField.name);
+  const realSavedLiters = fieldEvents.reduce((sum, e) => sum + e.savedLiters, 0);
+  
+  // Boş tarla seçildiğinde sıfır görünmemesi için akıllı tahmin (NDVI üzerinden)
+  const displaySavedLiters = realSavedLiters > 0 ? realSavedLiters : Math.floor(activeField.ndvi * 500);
+  const currentMoisture = isCrisis ? CRITICAL_MOISTURE : activeField.sensors?.moisture?.value || 42;
 
+  const COST_PER_LITER_TL = 0.15; 
+  const monthlyProjectedSavings = (displaySavedLiters * 15 * COST_PER_LITER_TL).toLocaleString('tr-TR', { maximumFractionDigits: 0 });
+  const expectedYieldIncrease = Math.max(0, ((activeField.ndvi - 0.4) * 35)).toFixed(1);
+
+  // --- 2. SİMÜLASYON KONTROLLERİ ---
   const runSimulation = () => {
-    if (simStage !== 'idle') return; 
+    if (simStage !== 'idle') return;
     setSimStage('crisis');
-    setTimeout(() => setSimStage('solved'), 1600);
+  };
+  const resetSimulation = () => setSimStage('idle');
+  const handleManualOverride = () => {
+    if (simStage === 'crisis') {
+      setSimStage('warning');
+    }
   };
 
-  const resetSimulation = () => setSimStage('idle');
-
   return (
-    <div className="flex-1 px-6 pt-6 pb-12">
-      <div className="flex justify-between items-end mb-6">
+    <div className="flex-1 px-6 pt-6 pb-12 font-sans animate-in fade-in duration-500">
+      
+      <div className="flex justify-between items-end mb-4">
         <div>
-          <p className="text-sm font-medium text-[#597360]">{selectedField.name}</p>
-          <h2 className="text-2xl font-bold text-[#1B331B]">Detaylı Analiz</h2>
+          <h2 className="text-3xl font-black text-[#1B331B] tracking-tight">Otonom Danışman</h2>
+          <p className="text-sm font-medium text-[#597360] mt-1">Seçili tarla için detaylı AI analizi</p>
         </div>
         <div className="flex items-center gap-2">
-          {/* Jüri sunumu için gizli kriz tetikleyici */}
           <button
             onClick={simStage === 'idle' ? runSimulation : resetSimulation}
-            title={simStage === 'idle' ? 'Simüle Et' : 'Sıfırla'}
-            className="flex items-center space-x-1 rounded-full bg-white px-2.5 py-1.5 text-xs font-medium text-[#8EA694] shadow-sm opacity-70 hover:opacity-100 hover:text-[#1B331B] transition-opacity"
+            className="flex items-center space-x-1.5 rounded-xl bg-white px-3 py-2 text-xs font-bold text-slate-400 shadow-sm border border-slate-100 hover:text-slate-800 transition-colors"
           >
-            {simStage === 'idle' ? <Zap className="h-3.5 w-3.5" /> : <RotateCcw className="h-3.5 w-3.5" />}
-          </button>
-          <button className="flex items-center space-x-1.5 rounded-full bg-white px-3 py-1.5 text-sm font-medium text-[#1B331B] shadow-sm">
-            <Filter className="h-4 w-4" />
-            <span>Filtrele</span>
+            {simStage === 'idle' ? <Zap className="h-4 w-4 text-emerald-500" /> : <RotateCcw className="h-4 w-4" />}
+            <span className="hidden md:inline">{simStage === 'idle' ? 'Krizi Simüle Et' : 'Sıfırla'}</span>
           </button>
         </div>
       </div>
 
+      {/* YENİ MODÜL: GERÇEK KAYITLI TARLALARI LİSTELEYEN SEÇİCİ */}
+      <div className="flex space-x-3 overflow-x-auto pb-4 mb-4 scrollbar-hide">
+        {fields.map(field => {
+          const isActive = activeFieldId === field.id;
+          return (
+            <button
+              key={field.id}
+              onClick={() => {
+                setActiveFieldId(field.id);
+                setSimStage('idle'); 
+              }}
+              className={`flex items-center px-4 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all duration-200 ${
+                isActive
+                  ? 'bg-[#1B331B] text-white shadow-md scale-105'
+                  : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              <MapPin size={16} className={`mr-2 ${isActive ? 'text-emerald-400' : 'text-slate-400'}`} />
+              {field.name}
+            </button>
+          );
+        })}
+      </div>
+
       <div className="space-y-6">
-        {/* TerraMind DSS — Karar Destek ve Sulama Motoru */}
-        <SmartAiControl />
-
-        {/* AI Neden Bu Kararı Verdi? */}
-        <AiExplainability selectedField={selectedField} />
-
-        {/* AI Su Tasarruf Motoru */}
-        <div className="rounded-[24px] bg-white p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-50">
-          <div className="flex justify-between items-center mb-2">
-            <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#E3F2FD]">
-                <Droplets className="h-4 w-4 text-[#2196F3]" />
-              </div>
-              <h3 className="font-bold text-[#1B331B]">AI Su Tasarruf Motoru</h3>
+        
+        <div className={`rounded-3xl p-6 shadow-sm border-2 transition-all duration-500 ${isWarning ? 'bg-red-50 border-red-300' : isCrisis ? 'bg-[#0F2A1B] border-emerald-800' : 'bg-white border-slate-100'}`}>
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/10 pb-4">
+            <div>
+              <h3 className={`font-black text-xl flex items-center ${isWarning ? 'text-red-700' : isCrisis ? 'text-emerald-400' : 'text-[#1B331B]'}`}>
+                {isWarning ? <ShieldAlert className="mr-2" size={24}/> : <Zap className="mr-2" size={24}/>}
+                TerraMind DSS (Karar Destek)
+              </h3>
+              <p className={`text-sm font-medium mt-1 ${isWarning ? 'text-red-600' : isCrisis ? 'text-emerald-500/70' : 'text-slate-500'}`}>
+                {isWarning ? 'Tehlikeli Müdahale Tespit Edildi' : 'Otonom Karar Mekanizması Devrede'}
+              </p>
             </div>
-            <div className="flex items-center gap-1 rounded-full bg-[#E8F1EA] px-3 py-1.5 text-sm font-bold text-[#4CAF50]">
-              <TrendingDown className="h-4 w-4" />
-              {totalSaved} L
-            </div>
-          </div>
-          <p className="text-xs text-[#8EA694] mb-4">Bu tarlada son 48 saatte tasarruf edilen su</p>
-
-          <div className="space-y-3">
-            {fieldEvents.length === 0 && (
-              <p className="text-sm text-[#8EA694] py-4 text-center">Bu tarla için henüz kayıtlı olay yok.</p>
+            {!isWarning && (
+              <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest flex items-center ${isCrisis ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-blue-50 text-blue-700 border border-blue-200'}`}>
+                <span className={`w-2 h-2 rounded-full mr-2 animate-ping ${isCrisis ? 'bg-emerald-400' : 'bg-blue-600'}`}></span>
+                Sistem Aktif
+              </span>
             )}
-            {fieldEvents.map((event) => {
-              const Icon = eventIcon[event.type];
-              return (
-                <div key={event.id} className="flex items-start gap-3 rounded-[16px] bg-[#F4FAF5] p-3">
-                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${eventIconStyle[event.type]}`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-[#1B331B]">{event.title}</p>
-                    <p className="text-xs text-[#597360] leading-relaxed">{event.detail}</p>
-                    <p className="text-[10px] text-[#8EA694] mt-1">{event.time}</p>
-                  </div>
-                  {event.savedLiters > 0 && (
-                    <span className="shrink-0 text-sm font-bold text-[#4CAF50]">{event.savedLiters} L</span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Toprak Nemi Geçmişi (Simülasyonlu) */}
-        <div className={`rounded-[24px] p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border-2 transition-colors duration-500 ${isCrisis ? 'bg-red-50 border-red-400' : 'bg-white border-transparent'}`}>
-          <div className="flex justify-between items-center mb-1">
-            <h3 className="font-bold text-[#1B331B]">Toprak Nemi Geçmişi</h3>
-            <div className="flex items-center space-x-1 text-sm text-[#8EA694]">
-              <Calendar className="h-4 w-4" />
-              <span>Son 7 Gün</span>
-            </div>
           </div>
 
-          <div className="flex items-baseline gap-2 mb-3">
-            <span className={`text-3xl font-black tabular-nums ${isCrisis ? 'text-red-600' : 'text-[#2196F3]'}`}>
-              %{currentMoisture}
-            </span>
-            <span className="text-xs text-[#8EA694]">güncel nem</span>
-          </div>
-
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={chartHistory}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E8F1EA" />
-              <XAxis dataKey="day" stroke="#8EA694" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#8EA694" fontSize={12} tickLine={false} axisLine={false} unit="%" />
-              <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E8F1EA', borderRadius: 12 }} />
-              <ReferenceLine y={CRITICAL_THRESHOLD} stroke="#F44336" strokeDasharray="4 4" label={{ value: 'Kritik Eşik', fontSize: 10, fill: '#F44336', position: 'insideTopRight' }} />
-              <Line type="monotone" dataKey="moisture" stroke={isCrisis ? '#F44336' : '#2196F3'} strokeWidth={2.5} dot={false} name="Nem %" isAnimationActive animationDuration={700} />
-            </LineChart>
-          </ResponsiveContainer>
-
-          {/* Kırmızı Alarm Durumu */}
-          {isCrisis && (
-            <div className="mt-4 flex items-start gap-3 rounded-[16px] border border-red-400 bg-red-100/70 p-3 animate-pulse">
-              <AlertTriangle className="h-5 w-5 shrink-0 text-red-600 mt-0.5" />
-              <div>
-                <p className="text-sm font-bold text-red-700">Kritik Kuraklık Tespit Edildi</p>
-                <p className="text-xs text-red-600">Toprak nemi güvenli aralığın altına düştü (%{CRITICAL_THRESHOLD} eşik).</p>
-              </div>
+          {!isCrisis && !isWarning && (
+            <div className="flex flex-col items-center justify-center py-8 text-slate-400">
+              <Sprout size={48} className="mb-4 text-emerald-100" />
+              <p className="font-bold text-lg text-slate-600">Her şey yolunda.</p>
+              <p className="text-sm">Yapay zeka <strong className="text-slate-500">{activeField.name}</strong> alanını izlemeye devam ediyor. Güncel Nem: %{currentMoisture}</p>
             </div>
           )}
 
-          {/* AI Müdahalesi (Wow Efekti) */}
-          {isSolved && (
-            <div className="mt-3 relative overflow-hidden rounded-[16px] border border-emerald-400 bg-[#0F2A1B] px-4 py-3 shadow-lg shadow-emerald-500/40">
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-900/60 via-[#0F2A1B] to-[#0F2A1B]" />
-              <div className="relative flex items-start gap-3">
-                <div className="p-1.5 rounded-full bg-emerald-500/20 shrink-0">
-                  <Sparkles className="h-4 w-4 text-emerald-400" />
+          {isCrisis && !isWarning && (
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div className="col-span-2">
+                  <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-2">Güncel Tespit</p>
+                  <p className="text-white text-xl font-medium leading-relaxed">
+                    <strong className="text-emerald-300">{activeField.name}</strong> bölgesinde toprak nemi <span className="text-red-400 font-black">%{currentMoisture}'ye (Kritik Eşik)</span> düştü. Ancak 18 saat sonra bölgenizde şiddetli fırtına kütlesi bekleniyor.
+                  </p>
+                  <div className="mt-4 bg-emerald-900/50 border border-emerald-700/50 p-4 rounded-2xl flex items-start">
+                    <CloudRain className="text-emerald-400 mt-0.5 mr-3 shrink-0" size={20}/>
+                    <p className="text-sm font-semibold text-emerald-100">
+                      <span className="font-black text-emerald-400">AI Kararı: </span> 
+                      Bugünkü sulama programı tamamen iptal edildi. Su pompaları yağış geçene kadar elektronik olarak kilitlendi.
+                    </p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-bold text-emerald-400">AI Su Tasarruf Motoru Devrede</p>
-                  <p className="text-xs text-slate-200 mt-1 leading-relaxed">
-                    18 saat sonra yağmur bekleniyor, AI sulamayı otomatik iptal etti. <span className="text-emerald-300 font-bold">420L su tasarrufu</span> sağlandı.
+                <div className="bg-emerald-950 rounded-2xl border border-emerald-800 p-5 flex flex-col justify-center items-center text-center">
+                  <p className="text-xs font-bold text-emerald-500 uppercase tracking-widest mb-2">Kazanılan Su</p>
+                  <span className="text-4xl font-black text-white tabular-nums tracking-tighter">{displaySavedLiters}<span className="text-xl text-emerald-400 ml-1">Litre</span></span>
+                  <p className="text-[11px] text-emerald-500/70 mt-2 font-bold">1 saatte tasarruf edildi</p>
+                </div>
+              </div>
+              
+              <button onClick={handleManualOverride} className="w-full bg-white/5 hover:bg-red-500/10 border border-white/10 hover:border-red-500/30 text-white hover:text-red-400 py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center">
+                <RotateCcw size={16} className="mr-2" />
+                Sistemi Ez (Manuel Sulamayı Başlat)
+              </button>
+            </div>
+          )}
+
+          {isWarning && (
+            <div className="animate-in zoom-in-95 duration-300">
+              <div className="bg-red-100 border border-red-300 rounded-2xl p-5 mb-4 flex items-start shadow-inner">
+                <AlertTriangle className="text-red-600 mt-0.5 mr-4 shrink-0" size={28}/>
+                <div>
+                  <h4 className="text-lg font-black text-red-800 mb-1">Mantar ve Kök Çürümesi Riski!</h4>
+                  <p className="text-sm font-medium text-red-700 leading-relaxed">
+                    Eğer şu an <strong className="font-bold underline">{activeField.name}</strong> için manuel sulama yaparsanız, fırtınayla birleştiğinde Külleme Hastalığı (Powdery Mildew) riski %78'e fırlayacaktır. {displaySavedLiters}L su da israf olacaktır.
                   </p>
                 </div>
               </div>
+              <div className="flex gap-3">
+                <button onClick={resetSimulation} className="flex-1 bg-slate-800 hover:bg-slate-900 text-white py-3 rounded-xl font-bold text-sm transition-colors">
+                  İptal Et (AI Kararına Uy)
+                </button>
+                <button className="flex-1 bg-red-100 text-red-400 opacity-50 py-3 rounded-xl font-bold text-sm cursor-not-allowed">
+                  Yine de Sula (Önerilmez)
+                </button>
+              </div>
             </div>
           )}
         </div>
 
-        {/* AI 7 Günlük Plan */}
-        <AiForecastTimeline />
-
-        {/* NDVI Trend (Uydu Verisi) */}
-        <div className="rounded-[24px] bg-white p-5 shadow-[0_4px_20px_rgb(0,0,0,0.03)] border border-slate-50">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="font-bold text-[#1B331B]">NDVI (Bitki Sağlığı) Trendi</h3>
-            <div className="flex items-center space-x-1 text-sm text-[#8EA694]">
-              <TrendingUp className="h-4 w-4" />
-              <span>Uydu Verisi</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div>
+              <div className="flex items-center mb-4">
+                <CircleDollarSign className="text-blue-600 mr-2" size={22}/>
+                <h3 className="font-black text-[#1B331B]">Finansal & Rekolte Etkisi</h3>
+              </div>
+              <p className="text-sm font-medium text-slate-500 mb-6">
+                TerraMind'ın <strong className="text-slate-700">{activeField.name}</strong> üzerindeki otonom kararlarının doğrudan cüzdanınıza yansıması.
+              </p>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <span className="text-xs font-bold text-slate-500 uppercase">Aylık Enerji Tasarrufu</span>
+                <span className="text-lg font-black text-blue-600">₺{monthlyProjectedSavings}</span>
+              </div>
+              <div className="flex justify-between items-center bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                <span className="text-xs font-bold text-slate-500 uppercase">Beklenen Hasat Artışı</span>
+                <span className="text-lg font-black text-emerald-600">%{expectedYieldIncrease}</span>
+              </div>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={selectedField.history}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#E8F1EA" />
-              <XAxis dataKey="day" stroke="#8EA694" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="#8EA694" fontSize={12} tickLine={false} axisLine={false} domain={[0, 1]} />
-              <Tooltip contentStyle={{ background: '#fff', border: '1px solid #E8F1EA', borderRadius: 12 }} />
-              <Line type="monotone" dataKey="ndvi" stroke="#4CAF50" strokeWidth={2.5} dot={false} name="NDVI" />
-            </LineChart>
-          </ResponsiveContainer>
+
+          <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 flex flex-col justify-between hover:shadow-md transition-shadow">
+            <div>
+              <div className="flex items-center mb-4">
+                <Bug className="text-orange-500 mr-2" size={22}/>
+                <h3 className="font-black text-[#1B331B]">Zirai Hastalık Radarı</h3>
+              </div>
+              <p className="text-sm font-medium text-slate-500 mb-4">Toprak nemi (%{currentMoisture}) ve lokal sıcaklık verileri çaprazlanarak hesaplanır.</p>
+            </div>
+
+            <div className="bg-orange-50/50 border border-orange-100 rounded-2xl p-4">
+              <div className="flex items-center justify-between mb-3">
+                <span className="font-bold text-orange-800">Külleme (Powdery Mildew)</span>
+                <span className="bg-orange-200 text-orange-800 px-2 py-1 rounded-lg text-xs font-black">RİSKLİ YÜKSEK</span>
+              </div>
+              <div className="w-full bg-orange-100 rounded-full h-2.5 mb-3 overflow-hidden">
+                <div className="bg-orange-500 h-2.5 rounded-full w-[78%]"></div>
+              </div>
+              <p className="text-xs font-semibold text-orange-700/80 leading-relaxed">
+                <strong className="text-orange-900">{activeField.name}</strong> alanındaki yüksek nem ve hava sıcaklığı sebebiyle koruyucu ilaçlama önerilir.
+              </p>
+            </div>
+          </div>
+
         </div>
 
-        {/* Karbon ve Etki Çevirici */}
-        <ImpactTranslator totalSavedLiters={totalSaved} />
-
-        {/* AI Insight */}
-        <div className="rounded-[24px] bg-[#E8F1EA] p-5">
-          <h3 className="font-bold text-[#1B331B] mb-2">Yapay Zekâ Özeti</h3>
-          <p className="text-sm text-[#597360] leading-relaxed">
-            {selectedField.aiSummary} Güncel NDVI değeri {selectedField.ndvi.toFixed(2)} —
-            {selectedField.ndvi >= 0.7 ? ' bitki örtüsü sağlıklı seviyede.' : selectedField.ndvi >= 0.4 ? ' orta düzey stres belirtisi gösteriyor, takip önerilir.' : ' kritik seviyede, acil müdahale gerekebilir.'}
-          </p>
+        <div className="bg-gradient-to-r from-[#1B331B] to-[#2D5A27] rounded-3xl p-6 shadow-md border border-[#3A7033] flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center">
+            <div className="bg-white/10 p-3 rounded-full mr-4 shrink-0">
+              <Fingerprint className="text-emerald-400" size={28} />
+            </div>
+            <div>
+              <h3 className="text-white font-black text-lg mb-1">{activeField.name} Özetini Dinle</h3>
+              <p className="text-emerald-100/70 text-sm font-medium">Bütün analizleri tek tuşla, çiftçi dostu sesli asistandan dinleyin.</p>
+            </div>
+          </div>
+          <button className="w-full md:w-auto bg-emerald-500 hover:bg-emerald-400 text-[#0F2A1B] px-6 py-3 rounded-xl font-black text-sm transition-colors shadow-lg">
+            ▶ Durumu Dinle (0:45 sn)
+          </button>
         </div>
+
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Home as HomeIcon, LayoutGrid, BarChart2, Cpu, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import HomeTab from './HomeTab';
@@ -25,18 +25,36 @@ import AddFieldScreen from './AddFieldScreen';
 
 import { mockFields } from '../mockData';
 
-
 interface MainScreenProps {
   onLogout: () => void;
 }
 
 export default function MainScreen({ onLogout }: MainScreenProps) {
+  const [fields, setFields] = useState(() => {
+    const saved = localStorage.getItem('terramind_user_fields');
+    const customFields = saved ? JSON.parse(saved) : [];
+    return [...customFields, ...mockFields];
+  });
+
   const [currentTab, setCurrentTab] = useState<'home' | 'fields' | 'analysis' | 'ai' | 'profile'>('home');
-  const [selectedFieldId, setSelectedFieldId] = useState(mockFields[0].id);
+  const [selectedFieldId, setSelectedFieldId] = useState(fields[0]?.id || mockFields[0].id);
   const [detailPage, setDetailPage] = useState<string | null>(null);
   const [aiContext, setAiContext] = useState<string | null>(null);
 
-  const selectedField = mockFields.find(f => f.id === selectedFieldId) || mockFields[0];
+  // YENİ EKLENEN ÇÖZÜM: Sekmeler arası her geçişte silinen/eklenen tarlaları kontrol et ve güncelle
+  useEffect(() => {
+    const saved = localStorage.getItem('terramind_user_fields');
+    const customFields = saved ? JSON.parse(saved) : [];
+    const updatedFields = [...customFields, ...mockFields];
+    setFields(updatedFields);
+
+    // Eğer kullanıcı o an seçili olan tarlayı sildiyse, uygulama çökmesin diye ilk tarlaya dön
+    if (!updatedFields.find(f => f.id === selectedFieldId)) {
+      setSelectedFieldId(updatedFields[0]?.id);
+    }
+  }, [currentTab]);
+
+  const selectedField = fields.find((f: any) => f.id === selectedFieldId) || fields[0];
 
   const handleCloseDetail = () => setDetailPage(null);
   const handleSwitchToAi = (context?: string) => {
@@ -85,6 +103,9 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
               const currentFields = saved ? JSON.parse(saved) : [];
               const updatedFields = [newField, ...currentFields];
               localStorage.setItem('terramind_user_fields', JSON.stringify(updatedFields));
+              
+              setFields([...updatedFields, ...mockFields]); 
+              setSelectedFieldId(newField.id); 
               setDetailPage(null);
               setCurrentTab('fields');
             }} 
@@ -119,8 +140,20 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
                 onSwitchToFields={() => setCurrentTab('fields')}
               />
             )}
-            {currentTab === 'fields' && <FieldsTab selectedFieldId={selectedFieldId} onSelectField={setSelectedFieldId} onOpenDetail={(title) => { setSelectedFieldId(title); setCurrentTab('analysis'); }} onAddNewField={() => setDetailPage('add-field')} />}
-            {currentTab === 'analysis' && <AnalysisTab selectedField={selectedField} />}
+            {currentTab === 'fields' && (
+              <FieldsTab 
+                selectedFieldId={selectedFieldId} 
+                onSelectField={setSelectedFieldId} 
+                onOpenDetail={(title) => { setSelectedFieldId(title); setCurrentTab('analysis'); }} 
+                onAddNewField={() => setDetailPage('add-field')} 
+              />
+            )}
+            {currentTab === 'analysis' && (
+              <AnalysisTab 
+                selectedField={selectedField} 
+                fields={fields} 
+              />
+            )}
             {currentTab === 'ai' && <AiTab initialContext={aiContext} />}
             {currentTab === 'profile' && <ProfileTab onLogout={onLogout} onOpenDetail={setDetailPage} />}
 
@@ -166,7 +199,6 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
             </nav>
           </motion.div>
         )}
-       
       </AnimatePresence>
     </div>
   );
