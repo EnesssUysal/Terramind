@@ -13,6 +13,7 @@ export interface FieldItem {
   crop: string;
   ndviScore: number;
   moisture: number;
+  polygon?: [number, number][];
 }
 
 const RecenterMap = ({ center }: { center: [number, number] }) => {
@@ -65,12 +66,6 @@ export const HomeTab: React.FC = () => {
   const [fields, setFields] = useState<FieldItem[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string>('');
 
-  // Form State'leri (Varsayılan Ankara Koordinatları)
-  const [inputLat, setInputLat] = useState<string>('39.9208');
-  const [inputLng, setInputLng] = useState<string>('32.8541');
-  const [fieldName, setFieldName] = useState<string>('');
-  const [cropType, setCropType] = useState<string>('Buğday');
-
   // Harita & Durum State'leri
   const [activeTab, setActiveTab] = useState<'RGB' | 'NDVI' | 'NEM'>('NDVI');
   const [center, setCenter] = useState<[number, number]>([39.9208, 32.8541]);
@@ -86,8 +81,6 @@ export const HomeTab: React.FC = () => {
         setFields(parsed);
         setSelectedFieldId(parsed[0].id);
         setCenter([parsed[0].lat, parsed[0].lng]);
-        setInputLat(parsed[0].lat.toString());
-        setInputLng(parsed[0].lng.toString());
         updateLocationAndWeather(parsed[0].lat, parsed[0].lng);
         return;
       }
@@ -130,8 +123,6 @@ export const HomeTab: React.FC = () => {
     const target = fields.find((f) => f.id === id);
     if (target) {
       setCenter([target.lat, target.lng]);
-      setInputLat(target.lat.toString());
-      setInputLng(target.lng.toString());
       await updateLocationAndWeather(target.lat, target.lng);
     }
   };
@@ -146,8 +137,6 @@ export const HomeTab: React.FC = () => {
       async (position) => {
         const lat = position.coords.latitude;
         const lng = position.coords.longitude;
-        setInputLat(lat.toFixed(4));
-        setInputLng(lng.toFixed(4));
         setCenter([lat, lng]);
         await updateLocationAndWeather(lat, lng);
       },
@@ -163,41 +152,6 @@ export const HomeTab: React.FC = () => {
     [lat - 0.0016, lng + 0.0020],
     [lat - 0.0018, lng - 0.0018],
   ];
-
-  // Yeni Tarla Kaydetme
-  const handleSearchAndSave = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const lat = parseFloat(inputLat);
-    const lng = parseFloat(inputLng);
-
-    if (isNaN(lat) || isNaN(lng)) {
-      alert('Lütfen geçerli enlem ve boylam girin.');
-      return;
-    }
-
-    setCenter([lat, lng]);
-    // Çekilen gerçek konumu doğrudan değişkene alıyoruz
-    const fetchedLocation = await updateLocationAndWeather(lat, lng);
-
-    const newField: FieldItem = {
-      id: Date.now().toString(),
-      name: fieldName || `${cropType} Tarlası`,
-      location: fetchedLocation, // Gerçek il/ilçe buraya yazılıyor
-      area: `${(Math.random() * 30 + 15).toFixed(1)} Dönüm`,
-      status: 'Sağlıklı',
-      lat,
-      lng,
-      crop: cropType || 'Buğday',
-      ndviScore: Number((0.65 + Math.random() * 0.25).toFixed(2)),
-      moisture: Math.floor(30 + Math.random() * 20),
-    };
-
-    const updated = [newField, ...fields];
-    setFields(updated);
-    setSelectedFieldId(newField.id);
-    localStorage.setItem('terramind_user_fields', JSON.stringify(updated));
-    setFieldName('');
-  };
 
   const currentField = fields.find((f) => f.id === selectedFieldId);
 
@@ -237,63 +191,6 @@ export const HomeTab: React.FC = () => {
       </header>
 
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
-        {/* KOORDİNAT VE TARLA EKLEME FORMU */}
-        <section className="bg-white p-5 md:p-6 rounded-3xl border border-emerald-100 shadow-xl shadow-emerald-900/5">
-          <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-            📍 Yeni Tarla Ekle & Konum Sorgula
-          </h2>
-          <form onSubmit={handleSearchAndSave} className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Enlem (Latitude)</label>
-              <input
-                type="text"
-                value={inputLat}
-                onChange={(e) => setInputLat(e.target.value)}
-                placeholder="Örn: 38.4237"
-                className="w-full bg-slate-50 text-sm text-slate-800 px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Boylam (Longitude)</label>
-              <input
-                type="text"
-                value={inputLng}
-                onChange={(e) => setInputLng(e.target.value)}
-                placeholder="Örn: 27.1428"
-                className="w-full bg-slate-50 text-sm text-slate-800 px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Tarla Adı</label>
-              <input
-                type="text"
-                value={fieldName}
-                onChange={(e) => setFieldName(e.target.value)}
-                placeholder="Örn: Yonca Tarlası"
-                className="w-full bg-slate-50 text-sm text-slate-800 px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 mb-1">Ekili Ürün</label>
-              <input
-                type="text"
-                value={cropType}
-                onChange={(e) => setCropType(e.target.value)}
-                placeholder="Örn: Buğday, Mısır"
-                className="w-full bg-slate-50 text-sm text-slate-800 px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-            <div className="flex items-end">
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-sm py-2.5 px-4 rounded-xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2"
-              >
-                + Tarlayı Kaydet
-              </button>
-            </div>
-          </form>
-        </section>
-
         {/* CANLI HAVA DURUMU KARTLARI */}
         <section className="bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-sky-500/10 p-5 rounded-3xl border border-emerald-100 shadow-md">
           <div className="flex items-center justify-between mb-4">
@@ -393,7 +290,7 @@ export const HomeTab: React.FC = () => {
                   attribution='&copy; Esri World Imagery'
                   url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                 />
-                <Polygon positions={generatePolygon(center[0], center[1])} pathOptions={getPolygonStyle()}>
+                <Polygon positions={currentField?.polygon || generatePolygon(center[0], center[1])} pathOptions={getPolygonStyle()}>
                   <Popup>
                     <div className="text-slate-900 p-1 min-w-[140px]">
                       <h3 className="font-bold text-sm border-b pb-1 mb-1">{currentField?.name || 'Seçili Tarla'}</h3>
