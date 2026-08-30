@@ -24,6 +24,7 @@ import CarbonFootprintScreen from './CarbonFootprintScreen';
 
 import { mockFields } from '../mockData';
 
+
 interface MainScreenProps {
   onLogout: () => void;
 }
@@ -150,6 +151,7 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
             </nav>
           </motion.div>
         )}
+       
       </AnimatePresence>
     </div>
   );

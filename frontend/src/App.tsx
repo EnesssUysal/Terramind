@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Eye, EyeOff, CheckCircle2, Leaf, Bell, User, CloudSun, MapPin, ChevronDown, RefreshCw, Maximize, Navigation, Zap, Droplets, ThermometerSun, Sprout, Home as HomeIcon, LayoutGrid, BarChart2, Cpu, ArrowUpRight, ArrowDownRight, Sparkles } from 'lucide-react';
 import MainScreen from './components/MainScreen';
+import WeatherRadarMap from './components/WeatherRadarMap';
 
 type ScreenType = 'splash' | 'login' | 'register' | 'otp_register' | 'success_register' | 'forgot_password' | 'otp_forgot' | 'new_password' | 'success_password' | 'home';
-
 
 export default function App() {
   const [activeScreen, setActiveScreen] = useState<ScreenType>('splash');
@@ -30,8 +30,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    // The splash screen stays visible for approximately 2 seconds.
-    // Setting to 2.2s to allow the breathing animation to loop smoothly before fading out.
     let timer: NodeJS.Timeout;
     if (activeScreen === 'splash') {
       timer = setTimeout(() => {
@@ -66,7 +64,6 @@ export default function App() {
                 }}
                 className="mb-8"
               >
-                {/* Tech & Nature integration logo based on user feedback */}
                 <svg width="150" height="150" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <defs>
                     <linearGradient id="logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
@@ -75,9 +72,7 @@ export default function App() {
                     </linearGradient>
                   </defs>
                   <g stroke="url(#logo-grad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                    {/* Left field curve */}
                     <path d="M 50 5 A 45 45 0 0 0 50 95" />
-                    {/* Integrated tech traces */}
                     <path d="M 20 18 Q 40 18 50 30 L 60 30 L 70 20 L 80 20" />
                     <circle cx="80" cy="20" r="2.5" fill="#1B331B" stroke="none" />
                     <path d="M 9 35 Q 35 35 45 50 L 55 50 L 65 40 L 85 40" />
@@ -100,7 +95,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Bottom Branding Anchor */}
             <div className="absolute bottom-12">
               <div className="h-1 w-1 rounded-full bg-[#1B331B] opacity-20"></div>
             </div>
@@ -115,7 +109,6 @@ export default function App() {
             className="flex min-h-screen flex-col items-center justify-center bg-[#E8F1EA] px-6 py-12"
           >
             <div className="flex w-full max-w-md flex-col items-center">
-              {/* Logo */}
               <div className="mb-8 flex flex-col items-center justify-center">
                 <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <defs>
@@ -141,7 +134,6 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Title & Subtitle */}
               <div className="mb-10 text-center">
                 <h1 className="mb-2 text-[28px] font-semibold text-[#1B331B]">Hoş Geldiniz</h1>
                 <p className="text-[15px] font-normal text-[#597360]">
@@ -149,11 +141,9 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Form Container */}
               <div className="w-full rounded-[24px] bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:p-8">
                 <form className="flex flex-col space-y-5" onSubmit={(e) => e.preventDefault()}>
                   
-                  {/* Email/Phone Input */}
                   <div className="flex flex-col space-y-1.5 relative">
                     <label className="text-[13px] font-medium text-[#1B331B] ml-1 mb-1">E-posta veya Telefon Numarası</label>
                     <input 
@@ -163,7 +153,6 @@ export default function App() {
                     />
                   </div>
 
-                  {/* Password Input */}
                   <div className="flex flex-col space-y-1.5 relative">
                     <label className="text-[13px] font-medium text-[#1B331B] ml-1 mb-1">Şifre</label>
                     <div className="relative">
@@ -182,14 +171,12 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Forgot Password */}
                   <div className="flex justify-end pt-1 pb-1">
                     <button type="button" onClick={() => setActiveScreen('forgot_password')} className="text-[14px] font-medium text-[#4CAF50] transition-colors hover:text-[#1B331B]">
                       Şifremi Unuttum?
                     </button>
                   </div>
 
-                  {/* Submit Button */}
                   <button 
                     type="button" 
                     onClick={() => setActiveScreen('home')}
@@ -198,7 +185,6 @@ export default function App() {
                     Giriş Yap
                   </button>
 
-                  {/* Register Section */}
                   <div className="pt-4 text-center text-[14px] font-medium text-[#597360]">
                     Hesabın yok mu? <button type="button" onClick={() => setActiveScreen('register')} className="ml-1 font-semibold text-[#4CAF50] transition-colors hover:text-[#1B331B]">Kayıt Ol</button>
                   </div>
@@ -206,7 +192,6 @@ export default function App() {
                 </form>
               </div>
 
-              {/* Bottom Section */}
               <div className="mt-12 flex items-center justify-center space-x-3 text-[13px] font-medium text-[#8EA694]">
                 <a href="#" className="transition-colors hover:text-[#597360]">Gizlilik Politikası</a>
                 <span>•</span>
@@ -224,7 +209,6 @@ export default function App() {
             className="flex min-h-screen flex-col items-center justify-center bg-[#E8F1EA] px-6 py-12"
           >
             <div className="flex w-full max-w-md flex-col items-center">
-              {/* Logo */}
               <div className="mb-6 flex flex-col items-center justify-center">
                 <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <defs>
@@ -250,7 +234,6 @@ export default function App() {
                 </span>
               </div>
 
-              {/* Title & Subtitle */}
               <div className="mb-8 text-center">
                 <h1 className="mb-2 text-[28px] font-semibold text-[#1B331B]">Hesap Oluştur</h1>
                 <p className="text-[15px] font-normal text-[#597360]">
@@ -258,11 +241,9 @@ export default function App() {
                 </p>
               </div>
 
-              {/* Form Container */}
               <div className="w-full rounded-[24px] bg-white p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] sm:p-8">
                 <form className="flex flex-col space-y-4" onSubmit={(e) => e.preventDefault()}>
                   
-                  {/* Name Input */}
                   <div className="flex flex-col space-y-1.5 relative">
                     <label className="text-[13px] font-medium text-[#1B331B] ml-1 mb-0.5">Ad Soyad</label>
                     <input 
@@ -272,7 +253,6 @@ export default function App() {
                     />
                   </div>
 
-                  {/* Phone/Email Input */}
                   <div className="flex flex-col space-y-1.5 relative">
                     <label className="text-[13px] font-medium text-[#1B331B] ml-1 mb-0.5">Telefon veya E-posta</label>
                     <input 
@@ -282,7 +262,6 @@ export default function App() {
                     />
                   </div>
 
-                  {/* Password Input */}
                   <div className="flex flex-col space-y-1.5 relative">
                     <label className="text-[13px] font-medium text-[#1B331B] ml-1 mb-0.5">Şifre</label>
                     <div className="relative">
@@ -311,7 +290,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Confirm Password Input */}
                   <div className="flex flex-col space-y-1.5 relative pt-1">
                     <label className="text-[13px] font-medium text-[#1B331B] ml-1 mb-0.5">Şifre Tekrar</label>
                     <div className="relative">
@@ -330,7 +308,6 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Agreement */}
                   <div className="pt-2 pb-1">
                     <label className="flex items-start cursor-pointer group">
                       <div className="relative flex items-center justify-center mt-0.5 mr-3">
@@ -349,7 +326,6 @@ export default function App() {
                     </label>
                   </div>
 
-                  {/* Submit Button */}
                   <button 
                     type="button" 
                     onClick={() => setActiveScreen('otp_register')}
@@ -358,7 +334,6 @@ export default function App() {
                     Hesap Oluştur
                   </button>
 
-                  {/* Login Section */}
                   <div className="pt-3 text-center text-[14px] font-medium text-[#597360]">
                     Zaten hesabın var mı? <button type="button" onClick={() => setActiveScreen('login')} className="ml-1 font-semibold text-[#4CAF50] transition-colors hover:text-[#1B331B]">Giriş Yap</button>
                   </div>
@@ -572,6 +547,7 @@ export default function App() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8, delay: 0.1, ease: [0.4, 0.0, 0.2, 1] }}
           >
+           
             <MainScreen onLogout={() => setActiveScreen('login')} />
           </motion.div>
         ) : null}

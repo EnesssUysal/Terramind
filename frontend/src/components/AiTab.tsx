@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Send, Sparkles, User, HelpCircle } from 'lucide-react';
 import { aiMessages } from '../mockData';
+import SmartAiControl from './SmartAiControl';
+<SmartAiControl />
 
 interface AiTabProps {
   initialContext?: string | null;
