@@ -104,3 +104,66 @@ export interface AlertItem {
   description: string;
 }
 
+export interface WaterAnalysisResult {
+  parameters: {
+    thetaFC: number;
+    thetaWP: number;
+    currentTheta: number;
+    Zr: number;
+    p: number;
+    Kc: number;
+    ETo: number;
+  };
+  results: {
+    TAW: number;
+    RAW: number;
+    Dr: number;
+    Ks: number;
+    ETc: number;
+    stressStatus: string;
+    irrigationStatus: string;
+  };
+  aiSummary: string;
+  history: {
+    date: string;
+    Dr: number;
+    TAW: number;
+    RAW: number;
+    Ks: number;
+    ETc: number;
+    P: number;
+    I: number;
+    moisture: number;
+  }[];
+}
+
+export interface ClimateAnalysisResult {
+  parameters: {
+    Tmax: number;
+    Tmin: number;
+    Tavg: number;
+    Tbase: number;
+    radiation: number | null;
+    RUE: number;
+    hasRadiationData: boolean;
+  };
+  results: {
+    dailyGDD: number;
+    totalGDD: number;
+    biomassEstimate: number | null;
+    tempStatus: string;
+    tempMessage: string;
+    radStatus: string;
+    radMessage: string;
+    growthStatus: string;
+    growthMessage: string;
+  };
+  history: {
+    date: string;
+    Tmax: number;
+    Tmin: number;
+    Tavg: number;
+    GDD: number;
+    radiation: number | null;
+  }[];
+}

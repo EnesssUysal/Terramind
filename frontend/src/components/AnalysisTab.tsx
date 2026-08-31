@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Field } from '../types';
-import { CloudRain, AlertTriangle, Zap, RotateCcw, Sprout, Bug, ShieldAlert, CircleDollarSign, Fingerprint, MapPin } from 'lucide-react';
+import { CloudRain, AlertTriangle, Zap, RotateCcw, Sprout, Bug, ShieldAlert, CircleDollarSign, Fingerprint, MapPin, Droplets } from 'lucide-react';
 import { mockWaterSavingEvents } from '../mockData';
+import WaterSoilAnalysisPanel from './WaterSoilAnalysisPanel';
+import ClimateAnalysisPanel from './ClimateAnalysisPanel';
 
 interface AnalysisTabProps {
   selectedField: Field;
@@ -13,6 +15,7 @@ type SimStage = 'idle' | 'crisis' | 'warning';
 const CRITICAL_MOISTURE = 20;
 
 export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps) {
+  const [activeMode, setActiveMode] = useState<'advisor' | 'water' | 'climate'>('climate');
   const [activeFieldId, setActiveFieldId] = useState(selectedField.id);
   const [simStage, setSimStage] = useState<SimStage>('idle');
 
@@ -114,7 +117,31 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
         })}
       </div>
 
-      <div className="space-y-6">
+      <div className="flex space-x-6 mb-6 border-b border-slate-200 overflow-x-auto scrollbar-hide">
+        <button 
+          onClick={() => setActiveMode('advisor')}
+          className={`pb-3 font-black text-lg transition-colors border-b-4 whitespace-nowrap ${activeMode === 'advisor' ? 'border-emerald-500 text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          Otonom Danışman
+        </button>
+        <button 
+          onClick={() => setActiveMode('water')}
+          className={`pb-3 font-black text-lg transition-colors border-b-4 flex items-center gap-2 whitespace-nowrap ${activeMode === 'water' ? 'border-blue-500 text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <Droplets size={20} className={activeMode === 'water' ? 'text-blue-500' : ''} />
+          Su & Nem Analizi
+        </button>
+        <button 
+          onClick={() => setActiveMode('climate')}
+          className={`pb-3 font-black text-lg transition-colors border-b-4 flex items-center gap-2 whitespace-nowrap ${activeMode === 'climate' ? 'border-orange-500 text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <Sprout size={20} className={activeMode === 'climate' ? 'text-orange-500' : ''} />
+          Sıcaklık & Güneş
+        </button>
+      </div>
+
+      {activeMode === 'advisor' ? (
+        <div className="space-y-6">
         
         <div className={`rounded-3xl p-6 shadow-sm border-2 transition-all duration-500 ${isWarning ? 'bg-red-50 border-red-300' : isCrisis ? 'bg-[#0F2A1B] border-emerald-800' : 'bg-white border-slate-100'}`}>
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 border-b border-white/10 pb-4">
@@ -264,7 +291,12 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
           </button>
         </div>
 
-      </div>
+        </div>
+      ) : activeMode === 'water' ? (
+        <WaterSoilAnalysisPanel fieldName={activeField.name} />
+      ) : (
+        <ClimateAnalysisPanel fieldName={activeField.name} />
+      )}
     </div>
   );
 }
