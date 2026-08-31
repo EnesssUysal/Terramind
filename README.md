@@ -130,64 +130,81 @@ Uzun vadede sensörler, yapay zekâ, veri analizi ve otonom tarım teknolojileri
 
 ---
 
+# 💻 Kurulum ve Çalıştırma
+
+Proje, birbirine entegre çalışan bir **Ön Yüz (Frontend)** ve **Arka Yüz (Backend)** bileşenlerinden oluşmaktadır. Geliştirme aşamasında test esnekliği sağlamak amacıyla, arka yüz sunucusu kapalı olduğunda sistem çökmez; **çevrimdışı/simülasyon modu** devreye girerek kesintisiz uygulama deneyimi sunar.
+
+### 1. Arka Yüzü (Backend) Başlatmak (Gerçek Analizler İçin)
+Uygulamadaki FAO-56 tabanlı su analizleri ve İklim & GDD hesaplamalarının gerçek zamanlı çalışabilmesi için arka uç sunucusunun aktif olması gerekir. Yeni bir terminal penceresinde:
+```bash
+cd backend
+npm install
+node index.js
+```
+*(Sunucu varsayılan olarak 3001 portunda çalışacaktır.)*
+
+### 2. Ön Yüzü (Frontend) Başlatmak
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+> **Not:** Backend sunucusunu çalıştırmazsanız, Analiz sekmeleri (Su & Nem, Sıcaklık & Güneş vb.) sonsuz yükleme ekranında kalmaz. Sistem otomatik olarak bağlantı yokluğunu algılar ve bileşenleri mock/simülasyon verileri ile doldurarak demoyu sürdürür.
+
+---
+
 # 📈 Geliştirme Durumu
 
-| Modül | Durum |
-|--------|:----:|
-| Splash Screen | ✅ |
-| Giriş Yap | ✅ |
-| Kayıt Ol | ✅ |
-| Ana Sayfa | ✅ |
-| Uydu Haritası | 🚧 |
-| Yapay Zekâ | 🚧 |
-| Tarlalar | 🚧 |
-| Analiz | 🚧 |
-| Profil | 🚧 |
-| Backend | ⏳ |
-| Sensör Entegrasyonu | ⏳ |
-| Gerçek Zamanlı Veri | ⏳ |
+Projede arayüz bileşenlerinin (UI) neredeyse tamamı kodlanmış ve temel arka uç (backend) analiz API'leri devreye alınmıştır.
+
+| Modül | Durum | Açıklama |
+|--------|:----:|---|
+| **Kullanıcı Deneyimi (UI/UX)** | | |
+| Splash Screen & Auth | ✅ | Giriş ve kayıt arayüzleri tamamlandı. |
+| Ana Sayfa (Dashboard) | ✅ | Dinamik kartlar ve genel bakış aktif. |
+| Uydu Haritası | ✅ | Leaflet.js ve NDVI spektral simülasyonları hazır. |
+| Yapay Zekâ & Chat | ✅ | AI tahmin zaman çizelgesi ve XAI (Açıklanabilirlik) eklendi. |
+| Tarlalar | ✅ | Tarla ekleme ve çoklu tarla detay takibi aktif. |
+| Profil & Ayarlar | ✅ | Özelleştirilebilir profil ekranı tamamlandı. |
+| **Analiz & Veri** | | |
+| Toprak & Su Analizi | ✅ | FAO-56 su dengesi hesaplamaları aktif. |
+| İklim & Güneş (GDD) | ✅ | Gelişim Derece Günleri (GDD) hesaplamaları aktif. |
+| Karbon Ayakizi & MRV | ✅ | Karbon salınım hesaplama ve blockchain-vari MRV arayüzü eklendi. |
+| Hibe & Destek | ✅ | Akıllı tarım hibe eşleştirici (Grantmatcher) eklendi. |
+| Hava Durumu | ✅ | Çevresel tahmin simülasyonları tamamlandı. |
+| **Arka Plan (Backend)** | | |
+| Backend Core API | ✅ | Node.js / Express altyapısı kuruldu. |
+| Firebase Veritabanı | ✅ | Temel canlı veri yazma/okuma aktif. |
+| Sensör Donanımı | ⏳ | UI tarafı (SensorsList, Detail) bitti, donanım bekleniyor. |
 
 ---
 
 # 🛣️ Yol Haritası
 
-## v0.1 Beta
-
-- Splash Screen
-- Authentication
-- Ana Sayfa
-- Yapay Zekâ Arayüzü
-- Dijital Tarla Haritası
-
----
-
-## v0.2
-
-- Analiz Sayfası
-- Sensör Detayları
-- Hava Durumu
-- Çoklu Tarla Yönetimi
+## ✅ v0.1 ve v0.2 (Tamamlandı)
+- [x] Tüm temel ekranların (Ana Sayfa, Tarlalar, Analiz, Profil) kodlanması.
+- [x] Dijital Tarla Haritası (Leaflet entegrasyonu).
+- [x] Yapay Zekâ Arayüzleri (SmartAiControl, Explainability).
+- [x] Analiz Sayfaları (GDD ve FAO-56 Simülasyonları).
+- [x] Hava Durumu ve Sensör Detay UI bileşenleri.
+- [x] Temel Backend API ve Firebase entegrasyonu.
 
 ---
 
-## v0.3
-
-- ESP32 Entegrasyonu
-- Backend
-- Veritabanı
-- Gerçek Zamanlı Veri
-
----
-
-## v1.0
-
-- Yapay Zekâ Karar Sistemi
-- Akıllı Sulama
-- Sensör Ağı
-- Otonom Tarım Sistemleri
-- Mobil Uygulama
+## 🚧 v0.3 (Mevcut Odak)
+- ESP32 ve gerçek sensör cihazlarının donanım entegrasyonu.
+- Sensör verilerinin canlı (WebSocket) olarak harita ve grafiklere aktarılması.
+- OpenWeather API ile gerçek zamanlı meteoroloji verilerinin çekilmesi.
+- Tam kapsamlı kullanıcı kimlik doğrulama (JWT/Firebase Auth).
 
 ---
+
+## 🚀 v1.0 (Hedef)
+- Tam Otonom Yapay Zekâ Karar Sistemi (Gerçek LLM Entegrasyonu).
+- Akıllı Sulama Sistemleri ve Vana Kontrolü.
+- Kapsamlı Sensör Ağı Yönetimi.
+- Mobil Uygulama Çıkışı (React Native).
 
 # 📂 Proje Yapısı
 

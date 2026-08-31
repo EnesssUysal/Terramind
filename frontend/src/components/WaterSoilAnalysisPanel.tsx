@@ -29,10 +29,31 @@ export default function WaterSoilAnalysisPanel({ fieldName }: { fieldName: strin
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(simParams)
       });
+      if (!response.ok) throw new Error("API yanıt vermedi");
       const result = await response.json();
       setData(result);
     } catch (error) {
-      console.error("Error fetching water analysis data:", error);
+      console.warn("Backend API bağlantısı başarısız, simülasyon verisi kullanılıyor:", error);
+      // Demo ve frontend-only mod için mock veri
+      const mockResult = {
+        parameters: { ...simParams },
+        results: {
+          TAW: 120,
+          RAW: 60,
+          Dr: 45,
+          Ks: 0.85,
+          ETc: 5.7,
+          stressStatus: 'İyi Durumda',
+          irrigationStatus: 'Gerekmiyor'
+        },
+        aiSummary: 'Bağlantı hatası: Backend sunucusuna ulaşılamadı. Şu an çevrimdışı simülasyon verisi görüntülenmektedir. Sunucuyu başlatmayı unutmayın.',
+        history: [
+          { date: 'Pzt', Dr: 30, TAW: 120, RAW: 60, Ks: 1.0, ETc: 4.5, P: 0, I: 10, moisture: 0.32 },
+          { date: 'Sal', Dr: 35, TAW: 120, RAW: 60, Ks: 0.95, ETc: 5.0, P: 0, I: 0, moisture: 0.30 },
+          { date: 'Çar', Dr: 45, TAW: 120, RAW: 60, Ks: 0.85, ETc: 5.7, P: 0, I: 0, moisture: 0.28 }
+        ]
+      };
+      setData(mockResult as WaterAnalysisResult);
     } finally {
       setLoading(false);
     }
