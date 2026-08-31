@@ -3,6 +3,7 @@ import { ArrowLeft, Leaf, Tractor, Globe2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { mockCarbonFootprint } from '../mockData';
+import CarbonMrvLedger from './CarbonMrvLedger';
 
 interface CarbonFootprintScreenProps {
   onBack: () => void;
@@ -98,6 +99,9 @@ export default function CarbonFootprintScreen({ onBack }: CarbonFootprintScreenP
             </LineChart>
           </ResponsiveContainer>
         </div>
+
+        {/* YENİ: Doğrulanabilir Karbon Kaydı (MRV Defteri) */}
+        <CarbonMrvLedger />
 
         {/* AI Insight */}
         <div className="rounded-[24px] bg-[#E8F1EA] p-5">
