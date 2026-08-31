@@ -1,165 +1,186 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Maximize2, Layers, AlertCircle, Info, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { mapOverlays, mockFields } from '../mockData';
+import React, { useState, useEffect } from 'react';
+import { MapContainer, TileLayer, Polygon, useMap } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import { ArrowLeft, Satellite, Activity, AlertTriangle, RefreshCw, Layers, MapPin, CheckCircle2 } from 'lucide-react';
+import { mockFields } from '../mockData';
 
 interface FullscreenMapScreenProps {
   onBack: () => void;
   selectedFieldId: string;
 }
 
-export default function FullscreenMapScreen({ onBack, selectedFieldId }: FullscreenMapScreenProps) {
-  const [activeLayer, setActiveLayer] = useState('Toprak Nemi');
-  const [selectedRegion, setSelectedRegion] = useState<string | null>(null);
+// Haritayı seçili tarlaya odaklayan görünmez bileşen
+function MapController({ center }: { center: [number, number] }) {
+  const map = useMap();
+  useEffect(() => {
+    map.flyTo(center, 16, { duration: 2 });
+  }, [center, map]);
+  return null;
+}
 
-  const field = mockFields.find(f => f.id === selectedFieldId) || mockFields[0];
-  const overlays = mapOverlays[activeLayer] || mapOverlays['Toprak Nemi'];
+export default function FullscreenMapScreen({ onBack, selectedFieldId }: FullscreenMapScreenProps) {
+  const [activeField, setActiveField] = useState(mockFields.find(f => f.id === selectedFieldId) || mockFields[0]);
+  const [isScanning, setIsScanning] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState('10 dk önce');
+
+  // NDVI değerine göre renk hesaplama algoritması
+  const getNdviColor = (ndvi: number) => {
+    if (ndvi >= 0.7) return { color: '#22c55e', fill: '#4ade80', status: 'Sağlıklı', icon: <CheckCircle2 className="text-emerald-500" /> };
+    if (ndvi >= 0.4) return { color: '#eab308', fill: '#fde047', status: 'Orta Stres', icon: <Activity className="text-yellow-500" /> };
+    return { color: '#ef4444', fill: '#f87171', status: 'Kuraklık / Kritik', icon: <AlertTriangle className="text-red-500" /> };
+  };
+
+  // Malatya/Kayseri bölgesi için gerçekçi tarla koordinatları (Mock)
+  const fieldPolygons: Record<string, [number, number][]> = {
+    '1': [[38.355, 38.310], [38.355, 38.315], [38.351, 38.315], [38.351, 38.310]],
+    '2': [[38.351, 38.310], [38.351, 38.315], [38.348, 38.313], [38.348, 38.308]],
+    '3': [[38.356, 38.316], [38.356, 38.320], [38.352, 38.320], [38.352, 38.316]],
+  };
+
+  const handleScan = () => {
+    setIsScanning(true);
+    setTimeout(() => {
+      setIsScanning(false);
+      setLastUpdate('Şimdi güncellendi');
+    }, 2500);
+  };
+
+  const activeColorProfile = getNdviColor(activeField.ndvi);
+  const centerPosition = fieldPolygons[activeField.id][0];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      transition={{ duration: 0.3, ease: [0.4, 0.0, 0.2, 1] }}
-      className="fixed inset-0 z-[100] bg-[#122619] flex flex-col"
-    >
-      <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-4 py-4 md:py-6 bg-gradient-to-b from-black/50 to-transparent">
+    <div className="relative w-full h-screen bg-slate-900 overflow-hidden font-sans flex flex-col">
+      
+      {/* ÜST BAR (Z-Index ile haritanın üstünde) */}
+      <div className="absolute top-0 left-0 right-0 z-[1000] p-4 flex justify-between items-start pointer-events-none">
         <button 
-          onClick={onBack}
-          className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white shadow-lg transition-transform hover:scale-105 active:scale-95"
+          onClick={onBack} 
+          className="pointer-events-auto bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-white/20 hover:bg-white transition-all"
         >
-          <ArrowLeft className="h-6 w-6" />
+          <ArrowLeft size={24} className="text-slate-800" />
         </button>
-        <div className="bg-black/30 backdrop-blur-md px-4 py-2 rounded-full text-white text-center">
-          <h1 className="text-sm font-bold">{field.name}</h1>
-          <p className="text-[10px] text-white/70">{activeLayer} Haritası</p>
-        </div>
-        <button className="flex h-12 w-12 items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white shadow-lg transition-transform hover:scale-105 active:scale-95">
-          <Layers className="h-5 w-5" />
-        </button>
-      </header>
 
-      {/* Map Layers (Chips) Overlay */}
-      <div className="absolute top-24 left-0 right-0 z-10 no-scrollbar flex overflow-x-auto px-4 pb-2 space-x-2">
-        {Object.keys(mapOverlays).map((layer) => (
+        <div className="pointer-events-auto flex gap-2">
+          <div className="bg-slate-900/80 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-slate-700 shadow-lg flex items-center">
+            <Layers size={18} className="text-emerald-400 mr-2" />
+            <span className="text-white text-xs font-bold tracking-wider uppercase">Katman: NDVI İndeksi</span>
+          </div>
           <button 
-            key={layer}
-            onClick={() => setActiveLayer(layer)}
-            className={`whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-semibold transition-colors backdrop-blur-md shadow-md ${
-              activeLayer === layer ? 'bg-[#4CAF50] text-white border border-[#4CAF50]' : 'bg-black/40 text-white border border-white/10 hover:bg-black/60'
-            }`}
+            onClick={handleScan}
+            className="bg-emerald-600/90 hover:bg-emerald-500 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-emerald-500/50 shadow-lg flex items-center transition-all"
           >
-            {layer}
+            <RefreshCw size={18} className={`text-white mr-2 ${isScanning ? 'animate-spin' : ''}`} />
+            <span className="text-white text-xs font-bold">Uydu Senkronizasyonu</span>
           </button>
-        ))}
+        </div>
       </div>
 
-      <div className="flex-1 relative w-full h-full overflow-hidden">
-        {/* Base Satellite Image */}
-        <div 
-          className="absolute inset-0 bg-cover bg-center transition-opacity duration-300"
-          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1586772658825-97b77ce46dc2?q=80&w=2000&auto=format&fit=crop')" }}
-        ></div>
-        
-        {/* Field Overlay SVG */}
-        <svg className="absolute inset-0 h-full w-full drop-shadow-2xl transition-colors duration-500" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice">
-          <polygon 
-            points="5,15 90,5 95,85 10,95" 
-            fill="transparent" 
-            stroke="rgba(255,255,255,0.8)" 
-            strokeWidth="0.3"
-            strokeDasharray="1 1"
-          />
-          {/* Zone Overlays */}
-          <polygon 
-            points="5,15 45,10 50,45 15,35" 
-            fill={overlays[0]} 
-            className={`transition-all duration-300 cursor-pointer ${selectedRegion === 'Kuzeybatı' ? 'stroke-white stroke-[0.5]' : 'hover:opacity-80'}`} 
-            onClick={() => setSelectedRegion('Kuzeybatı')}
-          />
-          <polygon 
-            points="45,10 90,5 85,55 50,45" 
-            fill={overlays[1]} 
-            className={`transition-all duration-300 cursor-pointer ${selectedRegion === 'Kuzeydoğu' ? 'stroke-white stroke-[0.5]' : 'hover:opacity-80'}`} 
-            onClick={() => setSelectedRegion('Kuzeydoğu')}
-          />
-          <polygon 
-            points="50,45 85,55 95,85 55,90" 
-            fill={overlays[2]} 
-            className={`transition-all duration-300 cursor-pointer ${selectedRegion === 'Güneydoğu' ? 'stroke-white stroke-[0.5]' : 'hover:opacity-80'}`} 
-            onClick={() => setSelectedRegion('Güneydoğu')}
-          />
-          <polygon 
-            points="15,35 50,45 55,90 10,95" 
-            fill={overlays[3]} 
-            className={`transition-all duration-300 cursor-pointer ${selectedRegion === 'Güneybatı' ? 'stroke-white stroke-[0.5]' : 'hover:opacity-80'}`} 
-            onClick={() => setSelectedRegion('Güneybatı')}
-          />
-        </svg>
+      {/* YAPAY ZEKA VE UYDU KONTROL PANELİ */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1000] w-11/12 max-w-4xl pointer-events-none">
+        <div className="pointer-events-auto bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 flex flex-col md:flex-row gap-6 items-center">
+          
+          <div className="flex-1 w-full border-r border-slate-200 pr-6">
+            <div className="flex items-center gap-2 mb-2">
+              <Satellite size={20} className="text-blue-600" />
+              <h3 className="font-black text-slate-800 text-lg">Agromonitoring API Sentinel-2</h3>
+            </div>
+            <p className="text-sm font-medium text-slate-500 mb-4">
+              Kızılötesi ve görünür ışık bantları kullanılarak klorofil yoğunluğu hesaplanmıştır. Son veri çekimi: <strong className="text-slate-700">{lastUpdate}</strong>.
+            </p>
+            
+            {/* Hızlı Tarla Seçici */}
+            <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
+              {mockFields.map(field => (
+                <button
+                  key={field.id}
+                  onClick={() => setActiveField(field)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border transition-all ${
+                    activeField.id === field.id 
+                    ? 'bg-slate-800 text-white border-slate-800' 
+                    : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+                  }`}
+                >
+                  {field.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="w-full md:w-auto flex flex-col items-center md:items-start min-w-[200px]">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{activeField.name} Analizi</p>
+            <div className="flex items-end gap-3 mb-2">
+              <span className="text-5xl font-black tabular-nums tracking-tighter" style={{ color: activeColorProfile.color }}>
+                {activeField.ndvi.toFixed(2)}
+              </span>
+              <span className="text-sm font-bold text-slate-500 mb-1.5">NDVI</span>
+            </div>
+            <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
+              {activeColorProfile.icon}
+              <span className="text-xs font-bold text-slate-700">{activeColorProfile.status}</span>
+            </div>
+          </div>
+
+        </div>
       </div>
 
-      {/* Detail Panel */}
-      <AnimatePresence>
-        {selectedRegion && (
-          <motion.div 
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="absolute bottom-0 left-0 right-0 z-20 bg-white rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] p-6 pb-safe"
-          >
-            <div className="w-12 h-1.5 bg-[#E8F1EA] rounded-full mx-auto mb-6"></div>
-            
-            <div className="flex justify-between items-start mb-6">
-              <div>
-                <h2 className="text-xl font-bold text-[#1B331B]">{selectedRegion} Bölgesi</h2>
-                <p className="text-sm text-[#597360]">Analiz Katmanı: {activeLayer}</p>
-              </div>
-              <button onClick={() => setSelectedRegion(null)} className="h-8 w-8 bg-[#F4FAF5] text-[#1B331B] rounded-full flex items-center justify-center font-bold">✕</button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4 mb-6">
-              <div className="bg-[#F4FAF5] rounded-[16px] p-4">
-                <p className="text-xs font-medium text-[#597360] mb-1">Mevcut Durum</p>
-                <div className="flex items-end gap-2">
-                  <span className="text-2xl font-bold text-[#1B331B]">{
-                    selectedRegion === 'Kuzeybatı' ? '42%' : 
-                    selectedRegion === 'Kuzeydoğu' ? '28%' : 
-                    selectedRegion === 'Güneydoğu' ? '55%' : '60%'
-                  }</span>
-                  <span className="text-sm font-semibold text-[#FF9800] mb-1 flex items-center">
-                    Dikkat
-                  </span>
-                </div>
-              </div>
-              <div className="bg-[#F4FAF5] rounded-[16px] p-4">
-                <p className="text-xs font-medium text-[#597360] mb-1">Tarihsel Ortalama</p>
-                <div className="flex items-end gap-2">
-                  <span className="text-2xl font-bold text-[#1B331B]">45%</span>
-                  <span className="text-xs font-medium text-[#8EA694] mb-1">Geçen Yıl</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-[#1B331B] text-white rounded-[20px] p-5 relative overflow-hidden shadow-lg">
-              <div className="absolute -right-4 -top-4 h-24 w-24 rounded-full bg-white opacity-5 blur-xl"></div>
-              <div className="flex gap-3 relative z-10">
-                <Sparkles className="h-6 w-6 text-[#A5D6A7] shrink-0" />
-                <div>
-                  <h4 className="font-bold mb-1 text-sm">Yapay Zeka Yorumu</h4>
-                  <p className="text-sm text-[#D2E6D7] leading-relaxed">
-                    Bu bölgede {activeLayer.toLowerCase()} seviyesi optimum değerin altında. Diğer bölgelere göre %15 daha fazla kayıp tespit edildi. Acil aksiyon önerilir.
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <button className="w-full mt-4 bg-[#4CAF50] text-white font-bold rounded-full py-4 shadow-md transition-transform active:scale-[0.98]">
-              Aksiyon Planı Oluştur
-            </button>
-          </motion.div>
+      {/* LEAFLET HARİTA KATMAMNI */}
+      <div className="flex-1 w-full relative z-0">
+        {isScanning && (
+          <div className="absolute inset-0 z-50 bg-emerald-900/20 backdrop-blur-[2px] flex items-center justify-center">
+            <div className="w-full h-1 bg-emerald-500/50 absolute top-1/2 shadow-[0_0_20px_#10b981] animate-scan"></div>
+          </div>
         )}
-      </AnimatePresence>
-    </motion.div>
+        
+        <MapContainer 
+          center={centerPosition} 
+          zoom={15} 
+          zoomControl={false}
+          className="w-full h-full"
+        >
+          <MapController center={centerPosition} />
+          
+          {/* Gerçek Uydu Görüntüsü (Esri World Imagery) */}
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution="&copy; Esri, Maxar, Earthstar Geographics"
+            maxZoom={19}
+          />
+
+          {/* Tarlaların NDVI Çokgenleri (Polygons) */}
+          {mockFields.map(field => {
+            const isSelected = field.id === activeField.id;
+            const profile = getNdviColor(field.ndvi);
+            const coordinates = fieldPolygons[field.id] || fieldPolygons['1'];
+            
+            return (
+              <Polygon
+                key={field.id}
+                positions={coordinates}
+                pathOptions={{ 
+                  color: profile.color, 
+                  fillColor: profile.fill, 
+                  fillOpacity: isSelected ? 0.6 : 0.3,
+                  weight: isSelected ? 3 : 1,
+                  dashArray: isSelected ? '' : '5, 5'
+                }}
+                eventHandlers={{
+                  click: () => setActiveField(field),
+                }}
+              />
+            );
+          })}
+        </MapContainer>
+      </div>
+
+      <style>{`
+        @keyframes scan {
+          0% { transform: translateY(-50vh); }
+          100% { transform: translateY(50vh); }
+        }
+        .animate-scan {
+          animation: scan 2s linear infinite;
+        }
+      `}</style>
+    </div>
   );
 }
