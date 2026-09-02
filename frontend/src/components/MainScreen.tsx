@@ -131,14 +131,7 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
             className="flex-1 pb-24 flex flex-col min-h-screen"
           >
             {currentTab === 'home' && (
-              <HomeTab 
-                selectedField={selectedField} 
-                onSelectField={setSelectedFieldId} 
-                onOpenDetail={setDetailPage} 
-                onSwitchToAi={handleSwitchToAi}
-                onSwitchToProfile={() => setCurrentTab('profile')}
-                onSwitchToFields={() => setCurrentTab('fields')}
-              />
+              <HomeTab />
             )}
             {currentTab === 'fields' && (
               <FieldsTab 

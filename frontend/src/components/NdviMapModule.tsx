@@ -4,12 +4,12 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsToolti
 import { Map, Leaf, AlertTriangle, CloudRain } from 'lucide-react';
 
 // Kayseri / Talas Bölgesi Örnek Tarla Koordinatları
-const FIELD_CENTER = [38.6805, 35.5471];
+const FIELD_CENTER = [38.6805, 35.5471] as [number, number];
 
 // Tarlayı 3 parsele bölen koordinatlar (Yeşil: Sağlıklı, Sarı: Stres, Kırmızı: Kurak)
-const healthyZone = [[38.681, 35.546], [38.681, 35.548], [38.680, 35.548], [38.680, 35.546]];
-const stressZone = [[38.680, 35.546], [38.680, 35.548], [38.679, 35.548], [38.679, 35.546]];
-const droughtZone = [[38.679, 35.546], [38.679, 35.548], [38.678, 35.548], [38.678, 35.546]];
+const healthyZone = [[38.681, 35.546], [38.681, 35.548], [38.680, 35.548], [38.680, 35.546]] as [number, number][];
+const stressZone = [[38.680, 35.546], [38.680, 35.548], [38.679, 35.548], [38.679, 35.546]] as [number, number][];
+const droughtZone = [[38.679, 35.546], [38.679, 35.548], [38.678, 35.548], [38.678, 35.546]] as [number, number][];
 
 // Recharts için 7 günlük NDVI Trend Verisi
 const ndviTrendData = [

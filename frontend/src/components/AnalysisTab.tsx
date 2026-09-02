@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Field } from '../types';
-import { CloudRain, AlertTriangle, Zap, RotateCcw, Sprout, Bug, ShieldAlert, CircleDollarSign, Fingerprint, MapPin, Droplets } from 'lucide-react';
+import { CloudRain, AlertTriangle, Zap, RotateCcw, Sprout, Bug, ShieldAlert, CircleDollarSign, Fingerprint, MapPin, Droplets, Leaf, FlaskConical, CloudSun } from 'lucide-react';
 import { mockWaterSavingEvents } from '../mockData';
 import WaterSoilAnalysisPanel from './WaterSoilAnalysisPanel';
 import ClimateAnalysisPanel from './ClimateAnalysisPanel';
+import NpkAnalysisPanel from './NpkAnalysisPanel';
+import PhAnalysisPanel from './PhAnalysisPanel';
+import EcAnalysisPanel from './EcAnalysisPanel';
+import WeatherAnalysisPanel from './WeatherAnalysisPanel';
+import SoilAnalysisPanel from './SoilAnalysisPanel';
 
 interface AnalysisTabProps {
   selectedField: Field;
@@ -15,7 +20,7 @@ type SimStage = 'idle' | 'crisis' | 'warning';
 const CRITICAL_MOISTURE = 20;
 
 export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps) {
-  const [activeMode, setActiveMode] = useState<'advisor' | 'water' | 'climate'>('climate');
+  const [activeMode, setActiveMode] = useState<'advisor' | 'water' | 'climate' | 'weather' | 'npk' | 'ph' | 'ec' | 'soil'>('climate');
   const [activeFieldId, setActiveFieldId] = useState(selectedField.id);
   const [simStage, setSimStage] = useState<SimStage>('idle');
 
@@ -137,6 +142,41 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
         >
           <Sprout size={20} className={activeMode === 'climate' ? 'text-orange-500' : ''} />
           Sıcaklık & Güneş
+        </button>
+        <button 
+          onClick={() => setActiveMode('weather')}
+          className={`pb-3 font-black text-lg transition-colors border-b-4 flex items-center gap-2 whitespace-nowrap ${activeMode === 'weather' ? 'border-indigo-500 text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <CloudSun size={20} className={activeMode === 'weather' ? 'text-indigo-500' : ''} />
+          Hava Durumu
+        </button>
+        <button 
+          onClick={() => setActiveMode('soil')}
+          className={`pb-3 font-black text-lg transition-colors border-b-4 flex items-center gap-2 whitespace-nowrap ${activeMode === 'soil' ? 'border-amber-600 text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <Sprout size={20} className={activeMode === 'soil' ? 'text-amber-600' : ''} />
+          Toprak & Ürün
+        </button>
+        <button 
+          onClick={() => setActiveMode('npk')}
+          className={`pb-3 font-black text-lg transition-colors border-b-4 flex items-center gap-2 whitespace-nowrap ${activeMode === 'npk' ? 'border-emerald-500 text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <Leaf size={20} className={activeMode === 'npk' ? 'text-emerald-500' : ''} />
+          Toprak Besinleri (NPK)
+        </button>
+        <button 
+          onClick={() => setActiveMode('ph')}
+          className={`pb-3 font-black text-lg transition-colors border-b-4 flex items-center gap-2 whitespace-nowrap ${activeMode === 'ph' ? 'border-blue-500 text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <FlaskConical size={20} className={activeMode === 'ph' ? 'text-blue-500' : ''} />
+          Toprak pH
+        </button>
+        <button 
+          onClick={() => setActiveMode('ec')}
+          className={`pb-3 font-black text-lg transition-colors border-b-4 flex items-center gap-2 whitespace-nowrap ${activeMode === 'ec' ? 'border-indigo-500 text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+        >
+          <span className={activeMode === 'ec' ? 'text-indigo-500 text-xl' : 'text-xl'}>🧂</span>
+          EC Analizi
         </button>
       </div>
 
@@ -294,8 +334,18 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
         </div>
       ) : activeMode === 'water' ? (
         <WaterSoilAnalysisPanel fieldName={activeField.name} />
-      ) : (
+      ) : activeMode === 'climate' ? (
         <ClimateAnalysisPanel fieldName={activeField.name} />
+      ) : activeMode === 'weather' ? (
+        <WeatherAnalysisPanel field={activeField} />
+      ) : activeMode === 'npk' ? (
+        <NpkAnalysisPanel fieldName={activeField.name} />
+      ) : activeMode === 'ph' ? (
+        <PhAnalysisPanel fieldName={activeField.name} />
+      ) : activeMode === 'ec' ? (
+        <EcAnalysisPanel fieldName={activeField.name} />
+      ) : (
+        <SoilAnalysisPanel field={activeField} />
       )}
     </div>
   );
