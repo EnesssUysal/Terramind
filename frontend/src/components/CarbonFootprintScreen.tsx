@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from 'recharts';
 import { mockCarbonFootprint } from '../mockData';
 import CarbonMrvLedger from './CarbonMrvLedger';
-import GrantMatcher from './Grantmatcher';
+import GrantMatcher from './GrantMatcher';
 
 interface CarbonFootprintScreenProps {
   onBack: () => void;

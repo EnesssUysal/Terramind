@@ -84,138 +84,55 @@ export default function ClimateAnalysisPanel({ fieldName }: { fieldName: string 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
-      {/* KATMAN 1: ÇİFTÇİ GÖRÜNÜMÜ */}
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 relative overflow-hidden">
-        <h2 className="text-2xl font-black text-[#1B331B] flex items-center mb-6">
-          <span className="mr-2 text-3xl">🌡️</span>
-          İklim ve Gelişim Durumu
-        </h2>
-
-        <div className="flex flex-col lg:flex-row gap-6 items-start">
-           <div className={`p-6 rounded-2xl border flex-1 w-full ${results.tempStatus.includes('İdeal') || results.growthStatus.includes('İYİ') ? 'border-emerald-200 bg-emerald-50 text-emerald-900' : 'border-yellow-200 bg-yellow-50 text-yellow-900'}`}>
-             <h3 className="text-xl font-black mb-3 flex items-center">
-                {results.tempStatus.includes('İdeal') || results.growthStatus.includes('İYİ') ? '🟢 Gelişim İçin Uygun' : '🟡 Dikkat Edilmeli'}
-             </h3>
-             <p className="font-medium text-lg leading-relaxed mb-6">
-               Mevcut hava sıcaklığı ve güneşlenme süresi bitkinizin gelişimi için {results.tempStatus.includes('İdeal') || results.growthStatus.includes('İYİ') ? 'oldukça uygun' : 'sınır değerlerde'} görünüyor.
-             </p>
-             <div className="bg-white/60 p-4 rounded-xl border border-white">
-                <h4 className="font-bold flex items-center mb-2"><Sprout size={16} className="mr-2"/> Ne yapabilirsiniz?</h4>
-                <p className="text-sm font-medium">
-                  {results.tempStatus.includes('İdeal') || results.growthStatus.includes('İYİ') 
-                    ? 'İklim şartları şu an lehinize çalışıyor. Normal bakım rutininize devam edebilirsiniz.' 
-                    : 'Aşırı sıcak veya soğuğa karşı bitkinizi korumak için önlemler (gölgelendirme vb.) almayı düşünebilirsiniz.'}
-                </p>
-             </div>
-           </div>
-
-           <div className="flex-1 w-full flex flex-col gap-4">
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase mb-1">Günün Sıcaklık Aralığı <span title="Gün içinde beklenen en düşük ve en yüksek sıcaklıklar" className="cursor-help">ⓘ</span></p>
-                  <p className="text-2xl font-black text-[#1B331B]">{parameters.Tmin}°C - {parameters.Tmax}°C</p>
-                </div>
-                <Thermometer className="text-orange-400" size={32}/>
-              </div>
-              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase mb-1">Güneşlenme Durumu <span title="Bitkinin gün içinde aldığı güneş ışığı düzeyi" className="cursor-help">ⓘ</span></p>
-                  <p className="text-xl font-black text-emerald-600">{results.radStatus}</p>
-                </div>
-                <Sun className="text-yellow-400" size={32}/>
-              </div>
-              
-              <button 
-                onClick={() => setShowFormulaInfo(!showFormulaInfo)} 
-                className="mt-2 w-full flex items-center justify-center space-x-2 rounded-xl bg-orange-50 px-4 py-4 text-sm font-bold text-orange-700 hover:bg-orange-100 transition-colors border border-orange-100"
-              >
-                <BarChart2 size={18} />
-                <span>{showFormulaInfo ? 'Gizle' : '📊 Detaylı Analiz & Hesaplamalar'}</span>
-              </button>
-           </div>
+      {/* BAŞLIK VE HESAPLAMA BUTONU */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h2 className="text-2xl font-black text-[#1B331B] flex items-center">
+            <Thermometer className="mr-2 text-orange-500" />
+            Sıcaklık & Güneş Analizi
+          </h2>
+          <p className="text-sm font-medium text-slate-500 mt-1">{fieldName} alanı için GDD (Gelişim Puanı) ve iklim değerlendirmesi.</p>
         </div>
+        <button 
+          onClick={() => setShowFormulaInfo(!showFormulaInfo)}
+          className="flex items-center space-x-1.5 rounded-xl bg-slate-50 px-4 py-2 text-sm font-bold text-slate-600 shadow-sm border border-slate-200 hover:bg-slate-100 transition-colors"
+        >
+          <Info size={16} className="text-blue-500"/>
+          <span>Bilimsel Detayları Göster</span>
+        </button>
       </div>
 
-      {/* BASİT GRAFİK */}
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-          <h3 className="font-bold text-[#1B331B] mb-4 flex items-center">
-            <Thermometer size={18} className="mr-2 text-red-500"/> Haftalık Sıcaklık Trendi
-          </h3>
-          <div className="h-64">
-             <TemperatureHistoryChart data={history} />
-          </div>
-          <p className="mt-4 text-sm font-medium text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
-             <strong>Grafik Özeti:</strong> Son günlerdeki sıcaklıklar bitkinin büyümesi için ideal sınırların içinde kalıyor.
-          </p>
-      </div>
-
-      {/* KATMAN 2: DETAYLI ANALİZ (Gizlenebilir) */}
+      {/* NASIL HESAPLANDI BİLGİ KUTUSU */}
       {showFormulaInfo && (
-        <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 shadow-inner animate-in slide-in-from-top-2">
-           <h3 className="font-black text-xl text-slate-800 mb-6 flex items-center"><Activity className="mr-2 text-orange-500"/> Detaylı Bilimsel Analiz</h3>
-           
-           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col justify-center text-center">
-                <span className="text-[10px] font-bold text-slate-500 uppercase mb-1">Ortalama Sıcaklık (Tavg)</span>
-                <span className="text-xl font-black text-orange-500">{((parameters.Tmax + parameters.Tmin)/2).toFixed(1)} <span className="text-xs">°C</span></span>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col justify-center text-center">
-                <span className="text-[10px] font-bold text-slate-500 uppercase mb-1">Güneş Radyasyonu</span>
-                <span className="text-xl font-black text-yellow-500">{parameters.hasRadiationData ? parameters.radiation : '--'} <span className="text-xs">MJ/m²</span></span>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col justify-center text-center">
-                <span className="text-[10px] font-bold text-slate-500 uppercase mb-1">Günlük Biriken Isı (GDD)</span>
-                <span className="text-xl font-black text-emerald-500">{results.dailyGDD} <span className="text-xs">Puan</span></span>
-              </div>
-              <div className="bg-white p-4 rounded-xl border border-slate-200 flex flex-col justify-center text-center">
-                <span className="text-[10px] font-bold text-slate-500 uppercase mb-1">Toplam GDD</span>
-                <span className="text-xl font-black text-emerald-700">{results.totalGDD} <span className="text-xs">Puan</span></span>
-              </div>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-             <div className="bg-white p-5 rounded-2xl border border-slate-200">
-               <h4 className="font-bold text-sm text-slate-700 mb-3 border-b pb-2">Birikimli Gelişim Eğrisi (GDD)</h4>
-               <div className="h-48 mt-4"><GDDChart data={history} /></div>
-             </div>
-             <div className="bg-white p-5 rounded-2xl border border-slate-200">
-               <h4 className="font-bold text-sm text-slate-700 mb-3 border-b pb-2">Güneş Radyasyon Eğilimi</h4>
-               <div className="h-48 mt-4"><RadiationChart data={history} /></div>
-             </div>
-           </div>
-
-           <div className="bg-white border border-slate-200 rounded-2xl p-6 text-sm text-slate-800 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-bold mb-3 flex items-center text-slate-700"><Activity size={18} className="mr-2 text-indigo-500"/> Kullanılan Parametreler</h4>
-                <ul className="space-y-2 font-medium text-slate-600">
-                  <li><strong>Tmax (Günün En Yüksek Sıcaklığı):</strong> {parameters.Tmax} °C</li>
-                  <li><strong>Tmin (Günün En Düşük Sıcaklığı):</strong> {parameters.Tmin} °C</li>
-                  <li><strong>Tbase (Bitki Taban Sıcaklığı):</strong> {parameters.Tbase} °C</li>
-                  <li><strong>Güneş Radyasyonu:</strong> {parameters.hasRadiationData ? `${parameters.radiation} MJ/m²` : 'Sensör Verisi Yok'}</li>
-                  <li><strong>RUE (Radiation Use Efficiency):</strong> {parameters.RUE} g/MJ</li>
-                </ul>
-              </div>
-              <div>
-                 <h4 className="font-bold mb-3 flex items-center text-slate-700"><Info size={18} className="mr-2 text-indigo-500"/> İklim & GDD Formülleri</h4>
-                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 text-slate-600 font-mono text-[10px] space-y-1 mb-4">
-                   <p>Tavg = (Tmax + Tmin) / 2</p>
-                   <p>GDD = max(0, Tavg - Tbase)</p>
-                   <p>Toplam GDD = Günlük GDD'lerin toplamı</p>
-                   <p>Tahmini Biyokütle = (Radyasyon × 0.8) × RUE</p>
-                 </div>
-                 <p className="text-xs text-slate-500"><strong>Bilgi:</strong> GDD (Büyüme Derece Günleri), bitkinin gelişimini sadece gün sayısına göre değil, aldığı faydalı sıcaklık miktarına göre takip etmeye yardımcı olur.</p>
-              </div>
-           </div>
+        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 text-sm text-orange-900 shadow-inner grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 className="font-bold mb-3 flex items-center"><Activity size={18} className="mr-2"/> Kullanılan Parametreler</h4>
+            <ul className="space-y-2 font-medium">
+              <li><strong>Tmax (Günün En Yüksek Sıcaklığı):</strong> {parameters.Tmax} °C</li>
+              <li><strong>Tmin (Günün En Düşük Sıcaklığı):</strong> {parameters.Tmin} °C</li>
+              <li><strong>Tbase (Bitki Taban Sıcaklığı):</strong> {parameters.Tbase} °C</li>
+              <li><strong>Güneş Radyasyonu:</strong> {parameters.hasRadiationData ? `${parameters.radiation} MJ/m²` : 'Sensör Verisi Yok'}</li>
+              <li><strong>RUE (Radiation Use Efficiency):</strong> {parameters.RUE} g/MJ</li>
+            </ul>
+          </div>
+          <div>
+             <h4 className="font-bold mb-3 flex items-center"><BarChart2 size={18} className="mr-2"/> İklim & GDD Formülleri</h4>
+             <ul className="space-y-2 font-mono text-xs bg-white/50 p-4 rounded-xl border border-orange-100">
+               <li>Tavg = (Tmax + Tmin) / 2</li>
+               <li>GDD = max(0, Tavg - Tbase)</li>
+               <li>Toplam GDD = Günlük GDD'lerin toplamı</li>
+               <li>Tahmini Biyokütle = (Radyasyon × 0.8) × RUE</li>
+             </ul>
+          </div>
         </div>
       )}
 
       {/* JÜRİ SİMÜLASYON PANELİ (TEST İÇİN) */}
-      <div className="bg-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-lg mt-8 opacity-75 hover:opacity-100 transition-opacity">
+      <div className="bg-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-lg">
         <div className="flex items-center mb-4 text-emerald-400">
           <RefreshCw size={18} className="mr-2" />
           <h3 className="font-bold text-sm tracking-wide uppercase">Canlı Simülasyon Kontrol Paneli (Jüri Demosu)</h3>
         </div>
-        <p className="text-xs text-slate-400 mb-4">Aşağıdaki değerleri değiştirerek analiz sonuçlarının dinamik olarak nasıl güncellendiğini test edebilirsiniz.</p>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-4">
           <div>
             <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Maks. Sıcaklık</label>
@@ -233,17 +150,136 @@ export default function ClimateAnalysisPanel({ fieldName }: { fieldName: string 
             <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Güneş Radyasyonu</label>
             <input type="number" step="0.1" name="radiation" value={simParams.radiation} onChange={handleSimChange} disabled={!simParams.hasRadiationData} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono disabled:opacity-50"/>
           </div>
-          <div className="flex items-center mt-4 lg:col-span-2">
+          <div className="flex items-center mt-4">
             <label className="flex items-center text-xs font-bold text-slate-300 cursor-pointer">
               <input type="checkbox" name="hasRadiationData" checked={simParams.hasRadiationData} onChange={handleSimChange} className="mr-2 rounded border-slate-600 text-emerald-500 focus:ring-emerald-500 bg-slate-900" />
               Radyasyon Sensörü Var
             </label>
           </div>
-          <div className="flex items-end">
+          <div className="flex items-end col-span-2 lg:col-span-2">
             <button onClick={fetchData} disabled={loading} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-1.5 px-3 rounded-lg text-sm transition-colors flex items-center justify-center">
-              {loading ? <RefreshCw size={16} className="animate-spin" /> : 'Güncelle'}
+              {loading ? <RefreshCw size={16} className="animate-spin" /> : 'Analiz Et'}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* 3 BÜYÜK DURUM KARTI */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        
+        {/* Sıcaklık Kartı */}
+        <div className={`rounded-3xl p-6 shadow-sm border flex flex-col justify-between ${getStatusColor(results.tempStatus)}`}>
+          <div>
+            <div className="flex items-center mb-4">
+              <Thermometer className="mr-2" size={24} />
+              <h3 className="font-black text-lg flex items-center">
+                Sıcaklık Durumu
+                <InfoTooltip content="Ölçülen sıcaklıkların seçilen bitki için gelişim açısından ne kadar uygun olduğunu gösterir." />
+              </h3>
+            </div>
+            <span className="text-3xl font-black block mb-2">{results.tempStatus}</span>
+            <p className="text-sm font-medium opacity-90 mb-4">{results.tempMessage}</p>
+          </div>
+          <div className="bg-white/40 rounded-xl p-3 grid grid-cols-2 gap-2 text-center text-sm font-bold border border-white/20">
+            <div>
+              <span className="flex items-center justify-center opacity-70 text-[10px] uppercase mb-1">
+                Günün En Düşük
+                <InfoTooltip content="Gün içinde ölçülen en düşük sıcaklıktır. Özellikle soğuk hassasiyeti olan bitkiler için önemlidir." />
+              </span>
+              {parameters.Tmin}°C
+            </div>
+            <div>
+              <span className="flex items-center justify-center opacity-70 text-[10px] uppercase mb-1">
+                Günün En Yüksek
+                <InfoTooltip content="Gün içinde ölçülen en yüksek sıcaklıktır. Çok yüksek sıcaklıklar bazı bitkilerde strese yol açabilir." />
+              </span>
+              {parameters.Tmax}°C
+            </div>
+          </div>
+        </div>
+
+        {/* Güneş Kartı */}
+        <div className={`rounded-3xl p-6 shadow-sm border flex flex-col justify-between ${getStatusColor(results.radStatus)}`}>
+          <div>
+            <div className="flex items-center mb-4">
+              <Sun className="mr-2" size={24} />
+              <h3 className="font-black text-lg flex items-center">
+                Güneş Enerjisi Durumu
+                <InfoTooltip content="Mevcut güneşlenme koşullarının bitkinin gelişimi açısından genel durumunu gösterir." />
+              </h3>
+            </div>
+            <span className="text-3xl font-black block mb-2">{results.radStatus}</span>
+            <p className="text-sm font-medium opacity-90 mb-4">{results.radMessage}</p>
+          </div>
+          <div className="bg-white/40 rounded-xl p-3 flex justify-between items-center text-sm font-bold border border-white/20">
+            <span className="flex items-center opacity-80">
+              Günlük Radyasyon:
+              <InfoTooltip content="Bitkiye ulaşan toplam güneş enerjisini gösterir. Büyüme ve su tüketimi üzerinde doğrudan etkisi vardır." />
+            </span>
+            <span>{parameters.hasRadiationData ? `${parameters.radiation} MJ/m²` : '---'}</span>
+          </div>
+        </div>
+
+        {/* Gelişim Kartı */}
+        <div className={`rounded-3xl p-6 shadow-sm border flex flex-col justify-between ${getStatusColor(results.growthStatus)}`}>
+          <div>
+            <div className="flex items-center mb-4">
+              <Sprout className="mr-2" size={24} />
+              <h3 className="font-black text-lg flex items-center">
+                Bitki Gelişim Koşulları
+                <InfoTooltip content="Sıcaklık ve güneş ışığı birlikte değerlendirilerek bitkinin mevcut gelişim koşulları hakkında genel bir fikir verir." />
+              </h3>
+            </div>
+            <span className="text-3xl font-black block mb-2">{results.growthStatus}</span>
+            <p className="text-sm font-medium opacity-90 mb-4">{results.growthMessage}</p>
+          </div>
+          <div className="bg-white/40 rounded-xl p-3 grid grid-cols-2 gap-2 text-center text-sm font-bold border border-white/20">
+            <div>
+              <span className="flex items-center justify-center opacity-70 text-[10px] uppercase mb-1">
+                Bugünkü GDD
+                <InfoTooltip content="GDD (Biriken Isı): Bitkinin gün içinde aldığı faydalı ısı miktarını (gelişim puanını) ifade eder." />
+              </span>
+              +{results.dailyGDD} Puan
+            </div>
+            <div>
+              <span className="flex items-center justify-center opacity-70 text-[10px] uppercase mb-1">
+                Toplam GDD
+                <InfoTooltip content="Sezon başından beri bitkinin biriktirdiği toplam ısı miktarıdır. Gelişim aşamasını tahmin etmek için kullanılır." />
+              </span>
+              {results.totalGDD} Puan
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* GRAFİKLER */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+          <h3 className="font-bold text-[#1B331B] mb-1 flex items-center">
+            <Thermometer size={18} className="mr-2 text-red-500"/> Geçmiş Sıcaklık Değişimi
+            <InfoTooltip content="Bitkinin gün boyunca karşılaştığı ortalama, minimum ve maksimum sıcaklıkları gösterir." />
+          </h3>
+          <div className="h-6 mb-2"></div>
+          <TemperatureHistoryChart data={history} />
+        </div>
+        
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+          <h3 className="font-bold text-[#1B331B] mb-1 flex items-center">
+            <Sprout size={18} className="mr-2 text-emerald-500"/> Günlük Gelişim Puanı (GDD)
+            <InfoTooltip content="GDD (Büyüme Derece Günleri): Bitkinin gelişimini sadece gün sayısına göre değil, aldığı sıcaklık miktarına göre takip etmeye yardımcı olur." />
+          </h3>
+          <div className="h-6 mb-2"></div>
+          <GDDChart data={history} />
+        </div>
+
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 md:col-span-2 lg:col-span-1">
+          <h3 className="font-bold text-[#1B331B] mb-1 flex items-center">
+            <Sun size={18} className="mr-2 text-yellow-500"/> Güneş Radyasyon Eğilimi
+            <InfoTooltip content="Bitkiye ulaşan güneş enerjisini gösterir. Bitkiler bu enerjiyi fotosentez ve büyüme için kullanır." />
+          </h3>
+          <div className="h-6 mb-2"></div>
+          <RadiationChart data={history} />
         </div>
       </div>
 

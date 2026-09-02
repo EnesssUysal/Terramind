@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Home as HomeIcon, LayoutGrid, BarChart2, Cpu, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import HomeTab from './HomeTab';
 import FieldsTab from './FieldsTab';
 import AnalysisTab from './AnalysisTab';
-import AiTab from './AiTab';
+import AiChatScreen from './AiChatScreen';
 import ProfileTab from './ProfileTab';
 import DetailScreen from './DetailScreen';
 
-// Detail Screens
 import WeatherScreen from './WeatherScreen';
 import NotificationsScreen from './NotificationsScreen';
 import FullscreenMapScreen from './FullscreenMapScreen';
@@ -22,6 +21,7 @@ import SupportScreen from './SupportScreen';
 import AboutScreen from './AboutScreen';
 import CarbonFootprintScreen from './CarbonFootprintScreen';
 import AddFieldScreen from './AddFieldScreen';
+import { FieldItem } from './FieldsTab';
 
 import { mockFields } from '../mockData';
 
@@ -29,32 +29,51 @@ interface MainScreenProps {
   onLogout: () => void;
 }
 
-export default function MainScreen({ onLogout }: MainScreenProps) {
-  const [fields, setFields] = useState(() => {
-    const saved = localStorage.getItem('terramind_user_fields');
-    const customFields = saved ? JSON.parse(saved) : [];
-    return [...customFields, ...mockFields];
-  });
+function loadUserFields(): FieldItem[] {
+  try {
+    const raw = localStorage.getItem('terramind_user_fields');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+    }
+  } catch (e) {
+    console.error('Tarlalar okunamadı:', e);
+  }
+  return DEFAULT_FIELDS;
+}
 
+export default function MainScreen({ onLogout }: MainScreenProps) {
   const [currentTab, setCurrentTab] = useState<'home' | 'fields' | 'analysis' | 'ai' | 'profile'>('home');
-  const [selectedFieldId, setSelectedFieldId] = useState(fields[0]?.id || mockFields[0].id);
+  const [selectedFieldId, setSelectedFieldId] = useState(mockFields[0].id);
   const [detailPage, setDetailPage] = useState<string | null>(null);
   const [aiContext, setAiContext] = useState<string | null>(null);
 
-  // YENİ EKLENEN ÇÖZÜM: Sekmeler arası her geçişte silinen/eklenen tarlaları kontrol et ve güncelle
-  useEffect(() => {
-    const saved = localStorage.getItem('terramind_user_fields');
-    const customFields = saved ? JSON.parse(saved) : [];
-    const updatedFields = [...customFields, ...mockFields];
-    setFields(updatedFields);
+  const [userFields, setUserFields] = useState<FieldItem[]>(loadUserFields);
+  const [selectedUserFieldId, setSelectedUserFieldId] = useState<string>(() => loadUserFields()[0]?.id);
+  const [showAddField, setShowAddField] = useState(false);
 
-    // Eğer kullanıcı o an seçili olan tarlayı sildiyse, uygulama çökmesin diye ilk tarlaya dön
-    if (!updatedFields.find(f => f.id === selectedFieldId)) {
-      setSelectedFieldId(updatedFields[0]?.id);
+  const selectedField = mockFields.find(f => f.id === selectedFieldId) || mockFields[0];
+  const selectedUserField = userFields.find(f => f.id === selectedUserFieldId) || userFields[0];
+
+  const persistUserFields = (fields: FieldItem[]) => {
+    setUserFields(fields);
+    localStorage.setItem('terramind_user_fields', JSON.stringify(fields));
+  };
+
+  const handleAddField = (newField: FieldItem) => {
+    const updated = [...userFields, newField];
+    persistUserFields(updated);
+    setSelectedUserFieldId(newField.id);
+    setShowAddField(false);
+  };
+
+  const handleDeleteUserField = (id: string) => {
+    const updated = userFields.filter(f => f.id !== id);
+    persistUserFields(updated.length > 0 ? updated : DEFAULT_FIELDS);
+    if (selectedUserFieldId === id) {
+      setSelectedUserFieldId((updated[0] || DEFAULT_FIELDS[0]).id);
     }
-  }, [currentTab]);
-
-  const selectedField = fields.find((f: any) => f.id === selectedFieldId) || fields[0];
+  };
 
   const handleCloseDetail = () => setDetailPage(null);
   const handleSwitchToAi = (context?: string) => {
@@ -81,11 +100,11 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
       case 'irrigation':
         return <IrrigationScreen onBack={handleCloseDetail} selectedFieldId={selectedFieldId} />;
       case 'sensors-list':
-        return <SensorsListScreen onBack={handleCloseDetail} onOpenDetail={setDetailPage} />;
+        return <SensorsListScreen onBack={handleCloseDetail} />;
       case 'alerts-list':
         return <AlertsScreen onBack={handleCloseDetail} />;
       case 'settings':
-        return <SettingsScreen onBack={handleCloseDetail} />;
+        return <SettingsScreen onBack={handleCloseDetail} onLogout={onLogout} />;
       case 'privacy':
         return <PrivacyScreen onBack={handleCloseDetail} />;
       case 'support':
@@ -94,23 +113,6 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
         return <AboutScreen onBack={handleCloseDetail} />;
       case 'carbon':
         return <CarbonFootprintScreen onBack={handleCloseDetail} />;
-      case 'add-field':
-        return (
-          <AddFieldScreen 
-            onBack={handleCloseDetail} 
-            onSave={(newField) => {
-              const saved = localStorage.getItem('terramind_user_fields');
-              const currentFields = saved ? JSON.parse(saved) : [];
-              const updatedFields = [newField, ...currentFields];
-              localStorage.setItem('terramind_user_fields', JSON.stringify(updatedFields));
-              
-              setFields([...updatedFields, ...mockFields]); 
-              setSelectedFieldId(newField.id); 
-              setDetailPage(null);
-              setCurrentTab('fields');
-            }} 
-          />
-        );
       default:
         return <DetailScreen title={detailPage!} onBack={handleCloseDetail} />;
     }
@@ -118,6 +120,9 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
 
   return (
     <div className="flex min-h-screen flex-col bg-[#F4FAF5] relative">
+      {showAddField && (
+        <AddFieldScreen onBack={() => setShowAddField(false)} onSave={handleAddField} />
+      )}
       <AnimatePresence mode="wait">
         {detailPage ? (
           renderDetailScreen()
@@ -131,26 +136,35 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
             className="flex-1 pb-24 flex flex-col min-h-screen"
           >
             {currentTab === 'home' && (
-              <HomeTab />
+              <HomeTab 
+                selectedField={selectedField} 
+                onSelectField={setSelectedFieldId} 
+                onOpenDetail={setDetailPage} 
+                onSwitchToAi={handleSwitchToAi}
+                onSwitchToProfile={() => setCurrentTab('profile')}
+                onSwitchToFields={() => setCurrentTab('fields')}
+              />
             )}
             {currentTab === 'fields' && (
-              <FieldsTab 
-                selectedFieldId={selectedFieldId} 
-                onSelectField={setSelectedFieldId} 
-                onOpenDetail={(title) => { setSelectedFieldId(title); setCurrentTab('analysis'); }} 
-                onAddNewField={() => setDetailPage('add-field')} 
+              <FieldsTab
+                fields={userFields}
+                selectedFieldId={selectedUserFieldId}
+                onSelectField={setSelectedUserFieldId}
+                onOpenDetail={() => setCurrentTab('analysis')}
+                onAddNewField={() => setShowAddField(true)}
+                onDeleteField={handleDeleteUserField}
               />
             )}
             {currentTab === 'analysis' && (
-              <AnalysisTab 
-                selectedField={selectedField} 
-                fields={fields} 
+              <AnalysisTab
+                selectedField={selectedUserField}
+                fields={userFields}
+                onSelectField={setSelectedUserFieldId}
               />
             )}
-            {currentTab === 'ai' && <AiTab initialContext={aiContext} />}
+            {currentTab === 'ai' && <AiChatScreen initialContext={aiContext} onBack={() => setCurrentTab('home')} />}
             {currentTab === 'profile' && <ProfileTab onLogout={onLogout} onOpenDetail={setDetailPage} />}
 
-            {/* Bottom Navigation */}
             <nav className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[24px] bg-white pb-safe pt-2 shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
               <div className="flex justify-around px-2 pb-4 pt-2">
                 <button 

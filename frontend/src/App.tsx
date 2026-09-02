@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Eye, EyeOff, CheckCircle2, Leaf, Bell, User, CloudSun, MapPin, ChevronDown, RefreshCw, Maximize, Navigation, Zap, Droplets, ThermometerSun, Sprout, Home as HomeIcon, LayoutGrid, BarChart2, Cpu, ArrowUpRight, ArrowDownRight, Sparkles } from 'lucide-react';
 import MainScreen from './components/MainScreen';
+import WeatherRadarMap from './components/WeatherRadarMap';
+
 type ScreenType = 'splash' | 'login' | 'register' | 'otp_register' | 'success_register' | 'forgot_password' | 'otp_forgot' | 'new_password' | 'success_password' | 'home';
 
 export default function App() {
