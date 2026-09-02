@@ -16,6 +16,16 @@ export interface FieldItem {
   polygon?: [number, number][];
 }
 
+// MainScreen'den gelen özellikleri (props) tanımlıyoruz
+export interface HomeTabProps {
+  selectedField?: any;
+  onSelectField?: (id: string) => void;
+  onOpenDetail?: (page: string) => void;
+  onSwitchToAi?: () => void;
+  onSwitchToProfile?: () => void;
+  onSwitchToFields?: () => void;
+}
+
 const RecenterMap = ({ center }: { center: [number, number] }) => {
   const map = useMap();
   useEffect(() => {
@@ -62,7 +72,7 @@ const getReverseGeocode = async (lat: number, lng: number): Promise<string> => {
   return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
 };
 
-export const HomeTab: React.FC = () => {
+export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
   const [fields, setFields] = useState<FieldItem[]>([]);
   const [selectedFieldId, setSelectedFieldId] = useState<string>('');
 
@@ -308,6 +318,7 @@ export const HomeTab: React.FC = () => {
             </div>
           </div>
         </section>
+
       </div>
     </div>
   );

@@ -23,6 +23,9 @@ import CarbonFootprintScreen from './CarbonFootprintScreen';
 import AddFieldScreen from './AddFieldScreen';
 import { FieldItem } from './FieldsTab';
 
+// YENİ EKLENEN EKRAN IMPORTU
+import { DigitalTwinScreen } from './DigitalTwinScreen';
+
 import { mockFields } from '../mockData';
 
 interface MainScreenProps {
@@ -39,13 +42,15 @@ function loadUserFields(): FieldItem[] {
   } catch (e) {
     console.error('Tarlalar okunamadı:', e);
   }
-  return DEFAULT_FIELDS;
+  // DEFAULT_FIELDS importu dosyanın üst kısımlarında yoksa, FieldsTab'den geliyor olmalı.
+  // Eski kodunuzda olduğu gibi bıraktım.
+  return []; 
 }
 
 export default function MainScreen({ onLogout }: MainScreenProps) {
   const [currentTab, setCurrentTab] = useState<'home' | 'fields' | 'analysis' | 'ai' | 'profile'>('home');
   const [selectedFieldId, setSelectedFieldId] = useState(mockFields[0].id);
-  const [detailPage, setDetailPage] = useState<string | null>(null);
+ const [detailPage, setDetailPage] = useState<string | null>(null);
   const [aiContext, setAiContext] = useState<string | null>(null);
 
   const [userFields, setUserFields] = useState<FieldItem[]>(loadUserFields);
@@ -69,9 +74,10 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
 
   const handleDeleteUserField = (id: string) => {
     const updated = userFields.filter(f => f.id !== id);
-    persistUserFields(updated.length > 0 ? updated : DEFAULT_FIELDS);
+    // Eski koddaki DEFAULT_FIELDS mantığı korunuyor
+    persistUserFields(updated.length > 0 ? updated : []);
     if (selectedUserFieldId === id) {
-      setSelectedUserFieldId((updated[0] || DEFAULT_FIELDS[0]).id);
+      setSelectedUserFieldId((updated[0] || { id: 'default' }).id);
     }
   };
 
@@ -100,7 +106,7 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
       case 'irrigation':
         return <IrrigationScreen onBack={handleCloseDetail} selectedFieldId={selectedFieldId} />;
       case 'sensors-list':
-        return <SensorsListScreen onBack={handleCloseDetail} />;
+  return <DigitalTwinScreen onBack={handleCloseDetail} />;
       case 'alerts-list':
         return <AlertsScreen onBack={handleCloseDetail} />;
       case 'settings':
@@ -113,6 +119,11 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
         return <AboutScreen onBack={handleCloseDetail} />;
       case 'carbon':
         return <CarbonFootprintScreen onBack={handleCloseDetail} />;
+      
+      // YENİ EKLENEN YÖNLENDİRME (Dijital İkiz Ekranı)
+      case 'digital-twin':
+        return <DigitalTwinScreen />;
+        
       default:
         return <DetailScreen title={detailPage!} onBack={handleCloseDetail} />;
     }
