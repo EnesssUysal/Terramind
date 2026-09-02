@@ -5,8 +5,6 @@ export const mockFields: Field[] = [
     id: '1',
     name: 'Kuzey Tarlası',
     location: 'Malatya, Yeşilyurt',
-    latitude: 38.2934,
-    longitude: 38.2530,
     area: '120 Dönüm',
     ndvi: 0.81,
     history: [
@@ -43,8 +41,6 @@ export const mockFields: Field[] = [
     id: '2',
     name: 'Güney Bahçesi',
     location: 'Malatya, Doğanşehir',
-    latitude: 38.0931,
-    longitude: 37.8765,
     area: '45 Dönüm',
     ndvi: 0.55,
     history: [
@@ -81,8 +77,6 @@ export const mockFields: Field[] = [
     id: '3',
     name: 'Doğu Serası',
     location: 'Malatya, Battalgazi',
-    latitude: 38.4116,
-    longitude: 38.3585,
     area: '12 Dönüm',
     ndvi: 0.32,
     history: [
