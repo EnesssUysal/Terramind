@@ -4,7 +4,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import HomeTab from './HomeTab';
 import FieldsTab from './FieldsTab';
 import AnalysisTab from './AnalysisTab';
-import AiChatScreen from './AiChatScreen';
+// ESKİ AICHATSCREEN YERİNE YENİ AITAB'I ÇAĞIRIYORUZ
+import AiTab from './AiTab'; 
 import ProfileTab from './ProfileTab';
 import DetailScreen from './DetailScreen';
 
@@ -42,15 +43,13 @@ function loadUserFields(): FieldItem[] {
   } catch (e) {
     console.error('Tarlalar okunamadı:', e);
   }
-  // DEFAULT_FIELDS importu dosyanın üst kısımlarında yoksa, FieldsTab'den geliyor olmalı.
-  // Eski kodunuzda olduğu gibi bıraktım.
   return []; 
 }
 
 export default function MainScreen({ onLogout }: MainScreenProps) {
   const [currentTab, setCurrentTab] = useState<'home' | 'fields' | 'analysis' | 'ai' | 'profile'>('home');
   const [selectedFieldId, setSelectedFieldId] = useState(mockFields[0].id);
- const [detailPage, setDetailPage] = useState<string | null>(null);
+  const [detailPage, setDetailPage] = useState<string | null>(null);
   const [aiContext, setAiContext] = useState<string | null>(null);
 
   const [userFields, setUserFields] = useState<FieldItem[]>(loadUserFields);
@@ -74,7 +73,6 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
 
   const handleDeleteUserField = (id: string) => {
     const updated = userFields.filter(f => f.id !== id);
-    // Eski koddaki DEFAULT_FIELDS mantığı korunuyor
     persistUserFields(updated.length > 0 ? updated : []);
     if (selectedUserFieldId === id) {
       setSelectedUserFieldId((updated[0] || { id: 'default' }).id);
@@ -106,7 +104,7 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
       case 'irrigation':
         return <IrrigationScreen onBack={handleCloseDetail} selectedFieldId={selectedFieldId} />;
       case 'sensors-list':
-  return <DigitalTwinScreen onBack={handleCloseDetail} />;
+        return <DigitalTwinScreen onBack={handleCloseDetail} />;
       case 'alerts-list':
         return <AlertsScreen onBack={handleCloseDetail} />;
       case 'settings':
@@ -119,11 +117,8 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
         return <AboutScreen onBack={handleCloseDetail} />;
       case 'carbon':
         return <CarbonFootprintScreen onBack={handleCloseDetail} />;
-      
-      // YENİ EKLENEN YÖNLENDİRME (Dijital İkiz Ekranı)
       case 'digital-twin':
         return <DigitalTwinScreen />;
-        
       default:
         return <DetailScreen title={detailPage!} onBack={handleCloseDetail} />;
     }
@@ -173,7 +168,10 @@ export default function MainScreen({ onLogout }: MainScreenProps) {
                 onSelectField={setSelectedUserFieldId}
               />
             )}
-            {currentTab === 'ai' && <AiChatScreen initialContext={aiContext} onBack={() => setCurrentTab('home')} />}
+            
+            {/* BURAYI DA GÜNCELLEDİK: Doğrudan AiTab çalışacak */}
+            {currentTab === 'ai' && <AiTab />}
+            
             {currentTab === 'profile' && <ProfileTab onLogout={onLogout} onOpenDetail={setDetailPage} />}
 
             <nav className="fixed bottom-0 left-0 right-0 z-50 rounded-t-[24px] bg-white pb-safe pt-2 shadow-[0_-8px_30px_rgb(0,0,0,0.04)]">
