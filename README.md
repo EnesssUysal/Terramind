@@ -1,241 +1,78 @@
 <div align="center">
+  
+  # 🌾 TerraMind
+  **Otonom Zirai Karar Destek (DSS) ve Deep-Tech Analiz Sistemi**
 
-<img src="design/logo.png" width="170"/>
+  [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](#)
+  [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)](#)
+  [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](#)
+  [![IoT Mesh](https://img.shields.io/badge/IoT_Mesh-ESP--NOW-emerald?style=for-the-badge)](#)
+  [![Edge AI](https://img.shields.io/badge/Edge_AI-Computer_Vision-blue?style=for-the-badge)](#)
 
-# 🌱 TerraMind
-
-### Akıllı Tarım Platformu
-
-### **Veri • Zekâ • Verim**
-
-Toprağı anlayan, verileri analiz eden ve üreticiye doğru zamanda doğru kararı vermesinde yardımcı olan yapay zekâ destekli dijital tarım platformu.
-
-🚧 **Proje aktif olarak geliştirilmektedir.**
-
----
-
-![Status](https://img.shields.io/badge/Status-Active%20Development-success)
-![Version](https://img.shields.io/badge/Version-v0.1%20Beta-blue)
-![Platform](https://img.shields.io/badge/Platform-Web-green)
-![AI](https://img.shields.io/badge/AI-Integrated-brightgreen)
-![License](https://img.shields.io/badge/License-MIT-orange)
-
+  *TerraMind, tarlaları sadece izlemekle kalmaz; donanım düzeyinde müdahalelerle bitki sağlığını, su tüketimini ve ağ enerjisini otonom olarak optimize eder.*
 </div>
 
 ---
 
-# 📖 Proje Hakkında
+## 🚀 Proje Vizyonu
 
-TerraMind; sensörler, yapay zekâ ve veri analizi teknolojilerini tek platform altında birleştirerek tarımsal üretimi daha verimli, sürdürülebilir ve öngörülebilir hale getirmeyi amaçlayan akıllı tarım platformudur.
-
-Platform, yalnızca verileri göstermek yerine üreticiye **"Şu anda ne oluyor?"**, **"Neden oluyor?"** ve **"Şimdi ne yapmalıyım?"** sorularının cevaplarını sunmayı hedeflemektedir.
+TerraMind, geleneksel uydu haritalarının ötesine geçerek tarımı **derin teknoloji (deep-tech)** ile buluşturan yeni nesil bir akıllı tarım platformudur. Sistem; drone kameralarından gelen canlı görüntüleri işler, toprak altı katmanlarının nemini 3D olarak simüle eder ve tarladaki IoT sensör düğümleri (Node) arasındaki iletişim kalitesini (RSSI/PDR) yapay zeka ile denetleyerek enerji tasarrufu (Deep Sleep) sağlar.
 
 ---
 
-# 📱 Uygulama Görselleri
+## 📸 Sistem Ekranları & Derin Teknoloji Şovu
 
-## Splash Screen • Giriş Yap • Ana Sayfa
+> **Not:** Aşağıdaki görselleri GitHub'da görüntüleyebilmek için uygulamanızdan aldığınız ekran görüntülerini projenin ana dizininde `docs/` veya `public/` klasörüne ekleyip yollarını güncelleyin (Örn: `![Analiz Merkezi](./image_8acccf.jpg)`).
 
-<p align="center">
-<img src="design/screenshots/splash.png" width="220"/>
-<img src="design/screenshots/login.png" width="220"/>
-<img src="design/screenshots/anaekran2.png" width="220"/>
-</p>
+### 1. Spektral & Derinlik Şovu (Komuta Merkezi)
+![Spektral Analiz Şovu](https://via.placeholder.com/1000x500/0B1121/10B981?text=Buraya+image_8acccf.jpg+Gorselini+Ekleyin)
 
----
+Bu ekranda sistem, ham verileri görsel bir şölene dönüştürür:
+* **Canlı Bilgisayarlı Görme (Drone Cam):** Bounding-box (sınırlayıcı kutu) teknolojisi ile yapraklardaki külleme hastalığı riskini ve su stresini anlık tespit eder.
+* **Lazer Tarama Algoritması:** Tarlayı lokalize olarak tarayarak sadece hastalıklı bölgeye "Değişken Oranlı Uygulama (VRA)" rotası çıkarır.
+* **3D Toprak Kesiti:** Yüzey, kök bölgesi ve derin taban rezervlerini eşzamanlı olarak izleyerek dinamik su ihtiyacı hesaplar.
 
-## Uydu Haritası • Yapay Zekâ • Profil
+### 2. IoT Mesh Topolojisi ve Edge Computing
+![IoT Topolojisi](https://via.placeholder.com/1000x400/050B14/3B82F6?text=IoT+Mesh+Topoloji+Gorselini+Ekleyin)
 
-<p align="center">
-<img src="design/screenshots/anaekran1.5map.png" width="220"/>
-<img src="design/screenshots/ai.png" width="220"/>
-<img src="design/screenshots/profil.png" width="220"/>
-</p>
+Sistem arkasında yatan donanım mühendisliği arayüze doğrudan yansır:
+* **Canlı Ağ Haritası:** Ana ağ geçidi (Gateway) ile düğümler (NODE-01, NODE-02) arasındaki veri paketlerinin (TX/RX) hareketini simüle eder.
+* **Otonom Pil Optimizasyonu:** `NODE-02`'de pil seviyesi %14'e düştüğünde veya sinyal kalitesi zayıfladığında (-78 dBm), yapay zeka düğümü otonom olarak **Deep Sleep (Derin Uyku)** moduna alır ve uyanış döngüsünü 15 dakikadan 45 dakikaya çıkarır.
 
----
+### 3. Zirai Karar Destek Sistemi (Otonom Danışman)
+![Otonom Danışman](https://via.placeholder.com/1000x400/F4FAF5/1B331B?text=Otonom+Danisman+Ekrani)
 
-## Tarlalar
-
-<p align="center">
-<img src="design/screenshots/tarla.png" width="220"/>
-</p>
+* **Kriz Simülasyonu:** Beklenen bir fırtına veya kritik nem düşüşü tespit edildiğinde sistem sulamayı otomatik iptal ederek binlerce litre su tasarrufu sağlar.
+* **Finansal Etki:** Alınan otonom kararların aylık enerji faturasına ve hasat rekoltesine etkisini (₺ ve %) anlık hesaplar.
+* **Sesli Asistan Entegrasyonu:** Tarlanın tüm teknik analiz raporunu, tarayıcının yerleşik `SpeechSynthesis` API'si üzerinden tek tuşla sesli olarak çiftçiye okur.
 
 ---
 
-# 🚀 Özellikler
+## 🛠️ Teknik Altyapı ve Mimari
 
-### 🌾 Tarla Yönetimi
-
-- Çoklu tarla desteği
-- Tarla sağlık skoru
-- Tarla bazlı analiz
-- Bölgesel durum takibi
-
-### 🛰️ Akıllı Harita
-
-- Uydu görüntüsü
-- Dijital tarla haritası
-- Bölgesel analiz
-- Katman sistemi
-
-### 📊 Toprak Analizi
-
-- Toprak Nemi
-- Su Durumu
-- pH
-- Azot
-- Fosfor
-- Hastalık Riski
-
-### 🤖 Yapay Zekâ
-
-- Tarımsal öneriler
-- Günlük analiz
-- Yapay zekâ sohbet sistemi
-- Sensör verilerine göre yorumlama
-
-### 📈 Veri Takibi
-
-- Sensör kartları
-- Grafikler
-- Günlük değişimler
-- Anlık durum analizi
-
-### 🌦️ Hava Durumu
-
-- Konuma özel hava durumu
-- Tarımsal etkiler
-- Sulama önerileri
+| Modül | Kullanılan Teknoloji / Protokol | İşlev |
+| :--- | :--- | :--- |
+| **Frontend Core** | React, TypeScript, Vite | Yüksek performanslı SPA mimarisi. |
+| **Stil & Animasyon** | Tailwind CSS, CSS Keyframes | Dinamik SVG çizimleri ve veri akışı animasyonları. |
+| **Donanım İletişimi** | ESP-NOW (Simüle Edilmiş) | Düşük gecikmeli, kamerasız sensör ağ topolojisi. |
+| **Veri & Analiz** | Özel AI Algoritmaları | NDVI hesaplamaları, Külleme Radarı, Nem Stresi. |
 
 ---
 
-# 🎯 Vizyon
+## ⚙️ Kurulum ve Çalıştırma
 
-TerraMind'ın amacı yalnızca sensör verilerini gösteren bir uygulama geliştirmek değildir.
+Projeyi yerel makinenizde test etmek ve derin teknoloji şovunu jüriye sunmak için aşağıdaki adımları izleyin:
 
-Uzun vadede sensörler, yapay zekâ, veri analizi ve otonom tarım teknolojilerini tek platform altında toplayarak üreticinin karar süreçlerini kolaylaştıran kapsamlı bir dijital tarım ekosistemi oluşturmayı hedeflemektedir.
+```bash
+# Projeyi klonlayın
+git clone [https://github.com/EnesssUysal/AI-Smart-Farming.git](https://github.com/EnesssUysal/AI-Smart-Farming.git)
 
----
+# Proje dizinine girin
+cd AI-Smart-Farming/frontend
 
-# 🛠️ Kullanılan Teknolojiler
+# Bağımlılıkları yükleyin
+npm install
+# veya yarn install / pnpm install
 
-| Teknoloji | Açıklama |
-|-----------|----------|
-| React | Kullanıcı Arayüzü |
-| TypeScript | Uygulama Geliştirme |
-| Vite | Build Tool |
-| Material Design 3 | Tasarım Sistemi |
-| Google AI Studio | Arayüz Geliştirme |
-| Git & GitHub | Versiyon Kontrol |
-
----
-
-# 📈 Geliştirme Durumu
-
-| Modül | Durum |
-|--------|:----:|
-| Splash Screen | ✅ |
-| Giriş Yap | ✅ |
-| Kayıt Ol | ✅ |
-| Ana Sayfa | ✅ |
-| Uydu Haritası | 🚧 |
-| Yapay Zekâ | 🚧 |
-| Tarlalar | 🚧 |
-| Analiz | 🚧 |
-| Profil | 🚧 |
-| Backend | ⏳ |
-| Sensör Entegrasyonu | ⏳ |
-| Gerçek Zamanlı Veri | ⏳ |
-
----
-
-# 🛣️ Yol Haritası
-
-## v0.1 Beta
-
-- Splash Screen
-- Authentication
-- Ana Sayfa
-- Yapay Zekâ Arayüzü
-- Dijital Tarla Haritası
-
----
-
-## v0.2
-
-- Analiz Sayfası
-- Sensör Detayları
-- Hava Durumu
-- Çoklu Tarla Yönetimi
-
----
-
-## v0.3
-
-- ESP32 Entegrasyonu
-- Backend
-- Veritabanı
-- Gerçek Zamanlı Veri
-
----
-
-## v1.0
-
-- Yapay Zekâ Karar Sistemi
-- Akıllı Sulama
-- Sensör Ağı
-- Otonom Tarım Sistemleri
-- Mobil Uygulama
-
----
-
-# 📂 Proje Yapısı
-
-```text
-AI-Smart-Farming
-│
-├── ai/
-├── assets/
-├── backend/
-├── design/
-│   ├── logo/
-│   └── screenshots/
-├── docs/
-├── frontend/
-├── hardware/
-├── tests/
-└── README.md
-```
-
----
-
-# 🌍 Gelecek Hedefleri
-
-- 🌱 Gerçek sensör entegrasyonu
-- ☁️ Bulut tabanlı veri yönetimi
-- 🤖 Gelişmiş yapay zekâ karar sistemi
-- 📱 Mobil uygulama
-- 🚜 Otonom tarım araçları entegrasyonu
-- 🌍 Küresel ölçekte kullanılabilecek dijital tarım platformu
-
----
-
-# 🤝 Katkıda Bulunma
-
-TerraMind aktif olarak geliştirilmektedir.
-
-Her türlü öneri, geri bildirim ve katkı projeyi daha ileri taşımamıza yardımcı olacaktır.
-
----
-
-<div align="center">
-
-## 🌱 TerraMind
-
-### **Veri • Zekâ • Verim**
-
-*"Toprağı anlayan teknoloji, geleceği şekillendirir."*
-
-⭐ Projeyi beğendiysen yıldız vermeyi unutma.
-
-</div>
+# Geliştirme sunucusunu başlatın
+npm run dev
