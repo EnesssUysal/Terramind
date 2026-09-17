@@ -1,13 +1,101 @@
-import React, { useState } from 'react';
-import { ArrowLeft, Cpu, Wifi, BatteryMedium, BatteryFull, BatteryLow, Radio, Activity, CheckCircle2, AlertTriangle, Layers } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, Cpu, Wifi, BatteryMedium, BatteryFull, BatteryLow, Radio, Activity, CheckCircle2, AlertTriangle, Layers, Droplets, AlertOctagon } from 'lucide-react';
 
 interface SensorsListScreenProps {
   onBack: () => void;
   onOpenDetail?: (page: string) => void;
 }
 
+// --- Isı haritası için gerçek sensör düğümleri (x, y: %, moisture: %0-100) ---
+interface HeatNode {
+  id: string;
+  label: string;
+  x: number;
+  y: number;
+  moisture: number;
+}
+
+const HEAT_NODES: HeatNode[] = [
+  { id: 'MASTER', label: 'Master Gateway', x: 15, y: 70, moisture: 42 },
+  { id: 'NODE-01', label: 'NODE-01 (Sera-1)', x: 25, y: 30, moisture: 68 },
+  { id: 'NODE-02', label: 'NODE-02 (Sera-2)', x: 70, y: 65, moisture: 18 },
+  { id: 'NODE-03', label: 'NODE-03 (Açık Alan)', x: 78, y: 25, moisture: 35 },
+];
+
+function moistureToColor(moisture: number): [number, number, number] {
+  const t = Math.max(0, Math.min(100, moisture)) / 100;
+  if (t < 0.5) {
+    const k = t / 0.5;
+    return [
+      Math.round(239 + (245 - 239) * k),
+      Math.round(68 + (158 - 68) * k),
+      Math.round(68 + (11 - 68) * k),
+    ];
+  }
+  const k = (t - 0.5) / 0.5;
+  return [
+    Math.round(245 + (59 - 245) * k),
+    Math.round(158 + (130 - 158) * k),
+    Math.round(11 + (246 - 11) * k),
+  ];
+}
+
+// Inverse Distance Weighting: her piksel, tüm sensörlerin uzaklığa göre
+// ağırlıklandırılmış ortalaması olarak hesaplanır — sensöre yakın alanlarda o
+// sensörün rengi baskın, sensörler arası boşlukta renkler yumuşakça karışır.
+function drawHeatmap(canvas: HTMLCanvasElement, nodes: HeatNode[]) {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+  const w = canvas.width;
+  const h = canvas.height;
+  const imageData = ctx.createImageData(w, h);
+  const POWER = 2.5;
+
+  for (let py = 0; py < h; py++) {
+    for (let px = 0; px < w; px++) {
+      const xPct = (px / w) * 100;
+      const yPct = (py / h) * 100;
+
+      let weightSum = 0;
+      let valueSum = 0;
+      let closestDist = Infinity;
+
+      for (const node of nodes) {
+        const dx = xPct - node.x;
+        const dy = yPct - node.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+        closestDist = Math.min(closestDist, dist);
+        const weight = 1 / Math.pow(dist, POWER);
+        weightSum += weight;
+        valueSum += weight * node.moisture;
+      }
+
+      const interpolated = valueSum / weightSum;
+      const [r, g, b] = moistureToColor(interpolated);
+
+      const idx = (py * w + px) * 4;
+      imageData.data[idx] = r;
+      imageData.data[idx + 1] = g;
+      imageData.data[idx + 2] = b;
+      imageData.data[idx + 3] = Math.round(Math.min(160, 60 + 2200 / (closestDist + 8)));
+    }
+  }
+
+  ctx.putImageData(imageData, 0, 0);
+}
+
 export default function SensorsListScreen({ onBack }: SensorsListScreenProps) {
   const [activeTab, setActiveTab] = useState<'twin' | 'devices'>('twin');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (activeTab !== 'twin') return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width = 120;
+    canvas.height = 120;
+    drawHeatmap(canvas, HEAT_NODES);
+  }, [activeTab]);
 
   // Sahadaki ESP32 / Sensör Düğümleri (Mock Data)
   const devices = [
@@ -17,6 +105,8 @@ export default function SensorsListScreen({ onBack }: SensorsListScreenProps) {
     { id: 'NODE-03', mac: '8C:AA:B5:72:04:E8', role: 'Hava İstasyonu (Açık Alan)', battery: 12, signal: -89, status: 'warning', type: 'esp-now' },
     { id: 'VALVE-1', mac: '3C:71:BF:44:2A:90', role: 'Otonom Su Vanası', battery: 100, signal: -55, status: 'online', type: 'relay' },
   ];
+
+  const criticalHeatNode = HEAT_NODES.reduce((min, n) => (n.moisture < min.moisture ? n : min), HEAT_NODES[0]);
 
   const getBatteryIcon = (level: number) => {
     if (level > 70) return <BatteryFull size={18} className="text-emerald-500" />;
@@ -33,15 +123,15 @@ export default function SensorsListScreen({ onBack }: SensorsListScreenProps) {
 
   return (
     <div className="flex-1 bg-slate-900 min-h-screen font-sans text-slate-200 animate-in fade-in duration-300 flex flex-col">
-      
+
       {/* ÜST BAŞLIK */}
-      <div className="bg-slate-950/80 px-6 py-4 flex items-center justify-between border-b border-slate-800 sticky top-0 z-20 backdrop-blur-md">
-        <div className="flex items-center gap-4">
-          <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-slate-800 transition-colors">
-            <ArrowLeft size={24} className="text-slate-300" />
+      <div className="flex items-center justify-between p-6 pb-2 sticky top-0 z-20 bg-slate-900/90 backdrop-blur-md">
+        <div className="flex items-center gap-3">
+          <button onClick={onBack} className="p-2 -ml-2 rounded-full hover:bg-slate-800 transition-colors text-slate-300 hover:text-white">
+            <ArrowLeft size={22} />
           </button>
           <div>
-            <h1 className="text-xl font-black text-white">Donanım & Dijital İkiz</h1>
+            <h1 className="text-lg font-black text-white">Donanım & Dijital İkiz</h1>
             <p className="text-xs font-medium text-slate-400 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               ESP-NOW Mesh Ağı Aktif
@@ -56,14 +146,14 @@ export default function SensorsListScreen({ onBack }: SensorsListScreenProps) {
       {/* SEKME KONTROLLERİ */}
       <div className="px-6 pt-6">
         <div className="flex bg-slate-800 p-1 rounded-xl">
-          <button 
+          <button
             onClick={() => setActiveTab('twin')}
             className={`flex-1 flex items-center justify-center py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'twin' ? 'bg-slate-700 text-emerald-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
           >
             <Layers size={18} className="mr-2" />
             3D Dijital İkiz (Heatmap)
           </button>
-          <button 
+          <button
             onClick={() => setActiveTab('devices')}
             className={`flex-1 flex items-center justify-center py-2.5 rounded-lg text-sm font-bold transition-all ${activeTab === 'devices' ? 'bg-slate-700 text-blue-400 shadow-md' : 'text-slate-400 hover:text-slate-200'}`}
           >
@@ -74,13 +164,13 @@ export default function SensorsListScreen({ onBack }: SensorsListScreenProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">
-        
-        {/* 3D DİJİTAL İKİZ KATMAMNI */}
+
+        {/* 3D DİJİTAL İKİZ KATMANI — gerçek IDW ısı haritası */}
         {activeTab === 'twin' && (
           <div className="space-y-6 animate-in slide-in-from-left-4 duration-500">
             <div className="bg-slate-800 rounded-3xl p-6 border border-slate-700 shadow-xl overflow-hidden relative">
-              
-              <div className="flex justify-between items-start mb-8 relative z-10">
+
+              <div className="flex justify-between items-start mb-6 relative z-10">
                 <div>
                   <h3 className="font-black text-white text-lg">Arazi Topografi & Nem Haritası</h3>
                   <p className="text-xs text-slate-400">Sensör düğümlerinden gelen eşzamanlı ısı/nem yansımaları</p>
@@ -91,45 +181,52 @@ export default function SensorsListScreen({ onBack }: SensorsListScreenProps) {
                 </div>
               </div>
 
-              {/* CSS İzometrik 3D Grid Simülasyonu */}
-              <div className="w-full h-80 flex items-center justify-center relative perspective-[1200px]">
-                <div 
-                  className="relative w-64 h-64 md:w-80 md:h-80 border-2 border-emerald-500/20 grid grid-cols-4 grid-rows-4 shadow-[0_0_50px_rgba(16,185,129,0.1)]"
-                  style={{ transform: 'rotateX(60deg) rotateZ(-45deg)', transformStyle: 'preserve-3d' }}
-                >
-                  {/* Grid Çizgileri */}
-                  {Array.from({ length: 16 }).map((_, i) => (
-                    <div key={i} className="border border-emerald-500/10 bg-slate-800/50 backdrop-blur-sm"></div>
-                  ))}
+              {/* Gerçek ısı haritası: canvas + sensör noktaları */}
+              <div className="relative w-full h-80 rounded-2xl overflow-hidden bg-slate-950 border border-slate-700/50">
+                <canvas
+                  ref={canvasRef}
+                  className="absolute inset-0 w-full h-full mix-blend-screen"
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.06)_1px,transparent_1px)] bg-[size:32px_32px]"></div>
 
-                  {/* Sensör Düğümü 1 (Master / Yeşil Alan) */}
-                  <div className="absolute top-[10%] left-[20%] w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_20px_#34d399] z-20" style={{ transform: 'translateZ(20px)' }}>
-                    <div className="absolute -top-16 -left-12 bg-slate-900/90 text-white text-[9px] p-2 rounded-lg border border-emerald-500/50 font-bold whitespace-nowrap shadow-xl" style={{ transform: 'rotateX(-60deg) rotateZ(45deg)' }}>
-                      MASTER GATEWAY<br/><span className="text-emerald-400">Nem: %42</span>
+                {HEAT_NODES.map((node) => {
+                  const isCritical = node.moisture < 25;
+                  const isOptimal = node.moisture >= 60;
+                  const dotColor = isCritical ? 'bg-red-500' : isOptimal ? 'bg-blue-400' : 'bg-emerald-400';
+                  const glow = isCritical ? '#ef4444' : isOptimal ? '#3b82f6' : '#34d399';
+                  const borderColor = isCritical ? 'border-red-500/50' : isOptimal ? 'border-blue-500/50' : 'border-emerald-500/50';
+                  const textColor = isCritical ? 'text-red-400' : isOptimal ? 'text-blue-400' : 'text-emerald-400';
+
+                  return (
+                    <div
+                      key={node.id}
+                      className="absolute -translate-x-1/2 -translate-y-1/2 z-20"
+                      style={{ left: `${node.x}%`, top: `${node.y}%` }}
+                    >
+                      <div
+                        className={`w-4 h-4 ${dotColor} rounded-full ${isCritical ? 'animate-pulse' : ''}`}
+                        style={{ boxShadow: `0 0 20px ${glow}` }}
+                      ></div>
+                      <div className={`absolute top-6 left-1/2 -translate-x-1/2 bg-slate-900/90 text-white text-[9px] p-2 rounded-lg border ${borderColor} font-bold whitespace-nowrap shadow-xl`}>
+                        {node.label}<br />
+                        <span className={textColor}>Nem: %{node.moisture}</span>
+                      </div>
                     </div>
-                  </div>
-                  {/* Heatmap Blob 1 */}
-                  <div className="absolute top-[-10%] left-[0%] w-32 h-32 bg-blue-500/30 rounded-full blur-[30px] z-10 pointer-events-none"></div>
-
-                  {/* Sensör Düğümü 2 (Kurak Alan) */}
-                  <div className="absolute top-[60%] left-[70%] w-4 h-4 bg-red-500 rounded-full shadow-[0_0_20px_#ef4444] z-20 animate-pulse" style={{ transform: 'translateZ(10px)' }}>
-                    <div className="absolute -top-16 -left-8 bg-slate-900/90 text-white text-[9px] p-2 rounded-lg border border-red-500/50 font-bold whitespace-nowrap shadow-xl" style={{ transform: 'rotateX(-60deg) rotateZ(45deg)' }}>
-                      NODE-02 (Kurak)<br/><span className="text-red-400">Nem: %18</span>
-                    </div>
-                  </div>
-                  {/* Heatmap Blob 2 */}
-                  <div className="absolute top-[40%] left-[50%] w-40 h-40 bg-red-500/20 rounded-full blur-[40px] z-10 pointer-events-none"></div>
-
-                </div>
+                  );
+                })}
               </div>
             </div>
-            
+
             <div className="bg-[#1e293b] rounded-2xl p-5 border border-slate-700 flex items-start gap-4">
-              <Activity className="text-blue-400 shrink-0 mt-1" size={24} />
+              {criticalHeatNode.moisture < 25 ? (
+                <AlertOctagon className="text-red-400 shrink-0 mt-1" size={24} />
+              ) : (
+                <Activity className="text-blue-400 shrink-0 mt-1" size={24} />
+              )}
               <div>
                 <h4 className="font-bold text-white mb-1">Katman Analizi</h4>
                 <p className="text-sm text-slate-400 leading-relaxed">
-                  Güney-Doğu parselindeki NODE-02 sensöründen düşük nem ve yüksek zemin sıcaklığı yansımaları alınıyor. İkiz model üzerinde kırmızı heatmap olarak işaretlenen bu alana otonom sulama yönlendirilebilir.
+                  <strong className="text-white">{criticalHeatNode.label}</strong> sensöründen düşük nem (%{criticalHeatNode.moisture}) ve yüksek zemin sıcaklığı yansımaları alınıyor. İkiz model üzerinde kırmızı heatmap olarak işaretlenen bu alana otonom sulama yönlendirilebilir.
                 </p>
               </div>
             </div>
@@ -146,11 +243,11 @@ export default function SensorsListScreen({ onBack }: SensorsListScreenProps) {
               return (
                 <div key={index} className={`bg-slate-800 rounded-2xl p-5 border transition-all ${isWarning ? 'border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.1)]' : 'border-slate-700 hover:border-slate-600'}`}>
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    
+
                     <div className="flex items-center gap-4">
                       <div className={`p-3 rounded-xl ${isWarning ? 'bg-red-500/10' : 'bg-slate-700'}`}>
-                        {device.type === 'esp32' ? <Cpu size={24} className="text-blue-400" /> : 
-                         device.type === 'relay' ? <Activity size={24} className="text-emerald-400" /> : 
+                        {device.type === 'esp32' ? <Cpu size={24} className="text-blue-400" /> :
+                         device.type === 'relay' ? <Activity size={24} className="text-emerald-400" /> :
                          <Radio size={24} className={isWarning ? 'text-red-400' : 'text-slate-300'} />}
                       </div>
                       <div>
@@ -173,7 +270,7 @@ export default function SensorsListScreen({ onBack }: SensorsListScreenProps) {
                         </div>
                         <span className="text-[10px] font-bold text-slate-400 mt-1">{device.signal} dBm</span>
                       </div>
-                      
+
                       <div className="w-px h-8 bg-slate-700"></div>
 
                       <div className="flex flex-col items-center">
@@ -189,7 +286,7 @@ export default function SensorsListScreen({ onBack }: SensorsListScreenProps) {
             })}
           </div>
         )}
-        
+
       </div>
     </div>
   );
