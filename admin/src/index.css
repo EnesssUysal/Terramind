@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme {
+  --color-terramind-dark: #0f172a;
+  --color-terramind-card: #1e293b;
+  --color-terramind-primary: #10b981;
+  --color-terramind-secondary: #3b82f6;
+  --color-terramind-accent: #8b5cf6;
+  --font-sans: "Inter", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-terramind-dark text-slate-200 font-sans antialiased;
+  }
+}
+
+.glass-card {
+  @apply bg-terramind-card/80 backdrop-blur-md border border-slate-700/50 rounded-xl shadow-xl;
+}
+
+.terramind-btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 active:scale-95;
+}
+
+.terramind-btn-primary {
+  @apply bg-terramind-primary hover:bg-emerald-400 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)];
+}
+
+.terramind-btn-danger {
+  @apply bg-rose-500 hover:bg-rose-400 text-white shadow-[0_0_15px_rgba(244,63,94,0.3)];
+}
+
+.terramind-btn-secondary {
+  @apply bg-slate-700 hover:bg-slate-600 text-white border border-slate-600;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}

@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
+import { io } from 'socket.io-client';
+
+const socket = io('http://localhost:3001');
 
 export interface FieldItem {
   id: string;
@@ -81,6 +84,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
   const [center, setCenter] = useState<[number, number]>([39.9208, 32.8541]);
   const [locationName, setLocationName] = useState<string>('Konum sorgulanıyor...');
   const [weatherData, setWeatherData] = useState({ temp: 22, wind: 10, humidity: 40, isLoading: false });
+  const [effectiveState, setEffectiveState] = useState<any>(null);
 
   // Sayfa Açıldığında Kayıtlı Tarlayı Getir
   useEffect(() => {
@@ -96,6 +100,15 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
       }
     }
     updateLocationAndWeather(39.9208, 32.8541);
+
+    // Socket.io dinleyicileri
+    socket.on('state:effective', (data) => {
+      setEffectiveState(data);
+    });
+
+    return () => {
+      socket.off('state:effective');
+    };
   }, []);
 
   // Konum İsmi ve Hava Durumunu Güncelleyen Fonksiyon
@@ -213,36 +226,54 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-amber-200/60 shadow-sm flex items-center gap-3">
+            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-amber-200/60 shadow-sm flex items-center gap-3 relative">
+              {effectiveState?.temperature !== undefined && (
+                <span className="absolute top-2 right-2 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+              )}
               <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center font-bold text-lg">
                 ☀️
               </div>
               <div>
                 <p className="text-xs text-slate-500 font-medium">Sıcaklık</p>
                 <p className="text-lg font-bold text-slate-800">
-                  {weatherData.isLoading ? 'Yükleniyor...' : `${weatherData.temp} °C`}
+                  {weatherData.isLoading && !effectiveState ? 'Yükleniyor...' : `${effectiveState?.temperature ?? weatherData.temp} °C`}
                 </p>
               </div>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-blue-200/60 shadow-sm flex items-center gap-3">
+            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-blue-200/60 shadow-sm flex items-center gap-3 relative">
+              {effectiveState?.soilMoisture !== undefined && (
+                <span className="absolute top-2 right-2 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+              )}
               <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold text-lg">
                 💧
               </div>
               <div>
                 <p className="text-xs text-slate-500 font-medium">Toprak Nemi</p>
-                <p className="text-lg font-bold text-slate-800">%{weatherData.humidity}</p>
+                <p className="text-lg font-bold text-slate-800">%{effectiveState?.soilMoisture ?? weatherData.humidity}</p>
               </div>
             </div>
 
-            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-teal-200/60 shadow-sm flex items-center gap-3">
+            <div className="bg-white/80 backdrop-blur-sm p-4 rounded-2xl border border-teal-200/60 shadow-sm flex items-center gap-3 relative">
+              {effectiveState?.weather?.windSpeed !== undefined && (
+                <span className="absolute top-2 right-2 flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                </span>
+              )}
               <div className="w-10 h-10 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center font-bold text-lg">
                 💨
               </div>
               <div>
                 <p className="text-xs text-slate-500 font-medium">Rüzgar Hızı</p>
                 <p className="text-lg font-bold text-slate-800">
-                  {weatherData.isLoading ? 'Yükleniyor...' : `${weatherData.wind} km/h`}
+                  {weatherData.isLoading && !effectiveState ? 'Yükleniyor...' : `${effectiveState?.weather?.windSpeed ?? weatherData.wind} km/h`}
                 </p>
               </div>
             </div>

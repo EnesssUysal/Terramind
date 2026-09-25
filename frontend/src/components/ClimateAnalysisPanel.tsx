@@ -9,8 +9,8 @@ export default function ClimateAnalysisPanel({ fieldName }: { fieldName: string 
   const [loading, setLoading] = useState(false);
   const [showFormulaInfo, setShowFormulaInfo] = useState(false);
 
-  // Jüri Simülasyon Paneli için State'ler
-  const [simParams, setSimParams] = useState({
+  // Backend verisi için
+  const [fetchParams, setFetchParams] = useState({
     Tmax: 32.5,
     Tmin: 18.2,
     Tbase: 10.0,
@@ -25,7 +25,7 @@ export default function ClimateAnalysisPanel({ fieldName }: { fieldName: string 
       const response = await fetch('http://localhost:3001/api/analysis/climate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(simParams)
+        body: JSON.stringify(fetchParams)
       });
       if (!response.ok) throw new Error("API yanıt vermedi");
       const result = await response.json();
@@ -33,7 +33,7 @@ export default function ClimateAnalysisPanel({ fieldName }: { fieldName: string 
     } catch (error) {
       console.warn("Backend API bağlantısı başarısız, simülasyon verisi kullanılıyor:", error);
       const mockResult = {
-        parameters: { ...simParams, Tavg: (simParams.Tmax + simParams.Tmin) / 2 },
+        parameters: { ...fetchParams, Tavg: (fetchParams.Tmax + fetchParams.Tmin) / 2 },
         results: {
           dailyGDD: 15.3,
           totalGDD: 450,
@@ -60,15 +60,9 @@ export default function ClimateAnalysisPanel({ fieldName }: { fieldName: string 
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fieldName]);
 
-  const handleSimChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setSimParams(prev => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : parseFloat(value) 
-    }));
-  };
+
 
   if (!data) return <div className="p-8 text-center text-slate-500 flex flex-col items-center justify-center"><RefreshCw className="animate-spin mb-2" /> Yükleniyor...</div>;
 
@@ -127,42 +121,7 @@ export default function ClimateAnalysisPanel({ fieldName }: { fieldName: string 
         </div>
       )}
 
-      {/* JÜRİ SİMÜLASYON PANELİ (TEST İÇİN) */}
-      <div className="bg-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-lg">
-        <div className="flex items-center mb-4 text-emerald-400">
-          <RefreshCw size={18} className="mr-2" />
-          <h3 className="font-bold text-sm tracking-wide uppercase">Canlı Simülasyon Kontrol Paneli (Jüri Demosu)</h3>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4 mb-4">
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Maks. Sıcaklık</label>
-            <input type="number" step="0.1" name="Tmax" value={simParams.Tmax} onChange={handleSimChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono"/>
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Min. Sıcaklık</label>
-            <input type="number" step="0.1" name="Tmin" value={simParams.Tmin} onChange={handleSimChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono"/>
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1" title="Bitki Taban Sıcaklığı">Gelişim Sınırı (°C)</label>
-            <input type="number" step="0.1" name="Tbase" value={simParams.Tbase} onChange={handleSimChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono"/>
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1">Güneş Radyasyonu</label>
-            <input type="number" step="0.1" name="radiation" value={simParams.radiation} onChange={handleSimChange} disabled={!simParams.hasRadiationData} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono disabled:opacity-50"/>
-          </div>
-          <div className="flex items-center mt-4">
-            <label className="flex items-center text-xs font-bold text-slate-300 cursor-pointer">
-              <input type="checkbox" name="hasRadiationData" checked={simParams.hasRadiationData} onChange={handleSimChange} className="mr-2 rounded border-slate-600 text-emerald-500 focus:ring-emerald-500 bg-slate-900" />
-              Radyasyon Sensörü Var
-            </label>
-          </div>
-          <div className="flex items-end col-span-2 lg:col-span-2">
-            <button onClick={fetchData} disabled={loading} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-1.5 px-3 rounded-lg text-sm transition-colors flex items-center justify-center">
-              {loading ? <RefreshCw size={16} className="animate-spin" /> : 'Analiz Et'}
-            </button>
-          </div>
-        </div>
-      </div>
+
 
       {/* 3 BÜYÜK DURUM KARTI */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

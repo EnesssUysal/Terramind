@@ -9,11 +9,11 @@ export default function WaterSoilAnalysisPanel({ fieldName }: { fieldName: strin
   const [loading, setLoading] = useState(false);
   const [showFormulaInfo, setShowFormulaInfo] = useState(false);
 
-  // Jüri Simülasyon Paneli için State'ler
-  const [simParams, setSimParams] = useState({
+  // Backend verisi için
+  const [fetchParams, setFetchParams] = useState({
     thetaFC: 0.35,
     thetaWP: 0.15,
-    currentTheta: 0.28,
+    currentTheta: 0.28, // Bu değer Socket'ten veya proptan beslenebilir
     Zr: 0.6,
     p: 0.5,
     Kc: 1.1,
@@ -27,7 +27,7 @@ export default function WaterSoilAnalysisPanel({ fieldName }: { fieldName: strin
       const response = await fetch('http://localhost:3001/api/analysis/water-soil', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(simParams)
+        body: JSON.stringify(fetchParams)
       });
       if (!response.ok) throw new Error("API yanıt vermedi");
       const result = await response.json();
@@ -36,7 +36,7 @@ export default function WaterSoilAnalysisPanel({ fieldName }: { fieldName: strin
       console.warn("Backend API bağlantısı başarısız, simülasyon verisi kullanılıyor:", error);
       // Demo ve frontend-only mod için mock veri
       const mockResult = {
-        parameters: { ...simParams },
+        parameters: { ...fetchParams },
         results: {
           TAW: 120,
           RAW: 60,
@@ -62,12 +62,9 @@ export default function WaterSoilAnalysisPanel({ fieldName }: { fieldName: strin
   useEffect(() => {
     fetchData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fieldName]);
 
-  const handleSimChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setSimParams(prev => ({ ...prev, [name]: parseFloat(value) }));
-  };
+
 
   if (!data) return <div className="p-8 text-center text-slate-500 flex flex-col items-center justify-center"><RefreshCw className="animate-spin mb-2" /> Yükleniyor...</div>;
 
@@ -127,44 +124,6 @@ export default function WaterSoilAnalysisPanel({ fieldName }: { fieldName: strin
         </div>
       )}
 
-      {/* JÜRİ SİMÜLASYON PANELİ (TEST İÇİN) */}
-      <div className="bg-slate-800 text-white rounded-2xl p-5 border border-slate-700 shadow-lg">
-        <div className="flex items-center mb-4 text-emerald-400">
-          <RefreshCw size={18} className="mr-2" />
-          <h3 className="font-bold text-sm tracking-wide uppercase">Canlı Simülasyon Kontrol Paneli (Jüri Demosu)</h3>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4 mb-4">
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1" title="Mevcut Nem (θ)">Anlık Toprak Nemi (%)</label>
-            <input type="number" step="0.01" name="currentTheta" value={simParams.currentTheta} onChange={handleSimChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono"/>
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1" title="Kök Derinliği (Zr)">Bitki Kök Derinliği (m)</label>
-            <input type="number" step="0.1" name="Zr" value={simParams.Zr} onChange={handleSimChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono"/>
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1" title="Tarla Kapasitesi (θFC)">Doygunluk Sınırı (%)</label>
-            <input type="number" step="0.01" name="thetaFC" value={simParams.thetaFC} onChange={handleSimChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono"/>
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1" title="Solma Noktası (θWP)">Kuruma Sınırı (%)</label>
-            <input type="number" step="0.01" name="thetaWP" value={simParams.thetaWP} onChange={handleSimChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono"/>
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1" title="Bitki Çarpanı (Kc)">Bitki Katsayısı</label>
-            <input type="number" step="0.1" name="Kc" value={simParams.Kc} onChange={handleSimChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono"/>
-          </div>
-          <div>
-            <label className="block text-[10px] text-slate-400 uppercase font-bold mb-1" title="Ref. Buharlaşma (ETo)">Günlük Su Kaybı</label>
-            <input type="number" step="0.1" name="ETo" value={simParams.ETo} onChange={handleSimChange} className="w-full bg-slate-900 border border-slate-600 rounded-lg px-2 py-1 text-sm font-mono"/>
-          </div>
-          <div className="flex items-end">
-            <button onClick={fetchData} disabled={loading} className="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-bold py-1.5 px-3 rounded-lg text-sm transition-colors flex items-center justify-center">
-              {loading ? <RefreshCw size={16} className="animate-spin" /> : 'Analiz Et'}
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* AI ÖZET METNİ */}
       <div className={`p-5 rounded-2xl border-l-4 ${results.Ks < 0.5 ? 'border-l-red-500 bg-red-50 text-red-900' : 'border-l-emerald-500 bg-emerald-50 text-emerald-900'}`}>

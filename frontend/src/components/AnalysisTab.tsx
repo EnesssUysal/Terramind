@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { CloudRain, AlertTriangle, Zap, RotateCcw, Sprout, Bug, ShieldAlert, CircleDollarSign, Fingerprint, MapPin, Droplets, Scan, Activity, Server, Target, Layers, Wifi, Cpu, BatteryCharging, Power } from 'lucide-react';
+import { CloudRain, AlertTriangle, Zap, RotateCcw, Sprout, Bug, ShieldAlert, CircleDollarSign, Fingerprint, MapPin, Droplets, Scan, Activity, Server, Target, Layers, Wifi, Cpu, BatteryCharging, Power, ThermometerSun, Wind, Beaker, Leaf, ListChecks, HeartPulse, CheckCircle2 } from 'lucide-react';
 
 import { Field } from '../types';
 import { mockWaterSavingEvents } from '../mockData';
 import WaterSoilAnalysisPanel from './WaterSoilAnalysisPanel';
 import ClimateAnalysisPanel from './ClimateAnalysisPanel';
+import FactorCard from './FactorCard';
+import InfoTooltip from './InfoTooltip';
 
 interface AnalysisTabProps {
   selectedField: Field;
@@ -16,7 +18,7 @@ type SimStage = 'idle' | 'crisis' | 'warning';
 const CRITICAL_MOISTURE = 20;
 
 export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps) {
-  const [activeMode, setActiveMode] = useState<'spectral' | 'advisor' | 'water' | 'climate'>('spectral');
+  const [activeMode, setActiveMode] = useState<'dashboard' | 'spectral' | 'advisor' | 'water' | 'climate'>('dashboard');
   const [activeFieldId, setActiveFieldId] = useState(selectedField?.id || fields[0]?.id);
   const [simStage, setSimStage] = useState<SimStage>('idle');
 
@@ -131,6 +133,9 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
 
       {/* NAVİGASYON SEKMELERİ */}
       <div className="flex space-x-6 mb-6 border-b border-slate-200 overflow-x-auto scrollbar-hide">
+        <button onClick={() => setActiveMode('dashboard')} className={`pb-3 font-black text-[15px] transition-colors border-b-4 flex items-center gap-2 whitespace-nowrap ${activeMode === 'dashboard' ? 'border-purple-500 text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
+          <Layers size={20} className={activeMode === 'dashboard' ? 'text-purple-500' : ''} /> Kapsamlı Analiz
+        </button>
         <button onClick={() => setActiveMode('spectral')} className={`pb-3 font-black text-[15px] transition-colors border-b-4 flex items-center gap-2 whitespace-nowrap ${activeMode === 'spectral' ? 'border-[#1B331B] text-[#1B331B]' : 'border-transparent text-slate-400 hover:text-slate-600'}`}>
           <Scan size={20} className={activeMode === 'spectral' ? 'text-[#1B331B]' : ''} /> Spektral & Derinlik Şovu
         </button>
@@ -146,7 +151,166 @@ export default function AnalysisTab({ selectedField, fields }: AnalysisTabProps)
       </div>
 
       {/* İÇERİK BÖLGESİ */}
-      {activeMode === 'spectral' ? (
+      {activeMode === 'dashboard' ? (
+        <div className="flex flex-col lg:flex-row gap-8 animate-in fade-in duration-500">
+          <div className="hidden lg:block w-64 shrink-0">
+            <div className="sticky top-6 space-y-2">
+              <h3 className="text-xs font-black text-slate-400 uppercase tracking-wider mb-4 px-2">Bölümler</h3>
+              <a href="#genel-durum" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#E8F3EB] text-[#1B331B] font-bold transition-colors"><Sprout size={18}/> Genel Durum</a>
+              <a href="#su-sulama" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-blue-50 text-blue-800 font-bold transition-colors"><Droplets size={18}/> Su ve Sulama</a>
+              <a href="#sicaklik-iklim" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-orange-50 text-orange-800 font-bold transition-colors"><ThermometerSun size={18}/> Sıcaklık ve İklim</a>
+              <a href="#besin-maddeleri" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-50 text-purple-800 font-bold transition-colors"><Beaker size={18}/> Besin Maddeleri</a>
+              <a href="#hastalik-zararli" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-red-50 text-red-800 font-bold transition-colors"><Bug size={18}/> Hastalık & Zararlı</a>
+              <a href="#tarimsal-islemler" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-teal-50 text-teal-800 font-bold transition-colors"><ListChecks size={18}/> Tarımsal İşlemler</a>
+              <a href="#birlesik-risk" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-slate-100 text-slate-800 font-bold transition-colors"><ShieldAlert size={18}/> Birleşik Risk</a>
+            </div>
+          </div>
+          <div className="flex-1 space-y-12 pb-12">
+            <section id="genel-durum" className="scroll-mt-6">
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                  <div>
+                    <h3 className="text-2xl font-black text-[#1B331B] mb-2">{activeField.name} — Genel Durum</h3>
+                    <div className="flex flex-wrap gap-2 mb-4">
+                       <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-xs font-bold flex items-center"><Leaf size={14} className="mr-1"/> Mısır (Pioneer)</span>
+                       <span className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-bold flex items-center"><Sprout size={14} className="mr-1"/> Çiçeklenme Dönemi (V12)</span>
+                       <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-bold flex items-center"><CheckCircle2 size={14} className="mr-1"/> Güncel Sağlık Puanı: 88/100</span>
+                    </div>
+                    <p className="text-sm font-medium text-slate-600 max-w-2xl leading-relaxed">
+                      Bitki gelişimi genel olarak sağlıklı ilerliyor. NDVI değeri ({activeField.ndvi}) bölge ortalamasının üzerinde.
+                      Ancak yaklaşan sıcak hava dalgası nedeniyle su stresi riski artıyor.
+                    </p>
+                  </div>
+                  <div className="bg-[#1B331B] text-white p-4 rounded-2xl shrink-0 w-full md:w-64">
+                     <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3">Öncelikli Aksiyon</h4>
+                     <p className="text-sm font-semibold mb-4">Yarın akşam saatlerinde 25mm koruyucu sulama yapılması önerilir.</p>
+                     <button onClick={playSummaryAudio} className="w-full bg-white/20 hover:bg-white/30 text-white text-xs font-bold py-2 rounded-xl transition-colors flex items-center justify-center gap-2">
+                       <HeartPulse size={14}/> Sesli Raporu Dinle
+                     </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+            
+            <section id="su-sulama" className="scroll-mt-6">
+               <div className="flex items-center gap-2 mb-4">
+                  <Droplets className="text-blue-500" size={24}/>
+                  <h3 className="text-xl font-black text-slate-800">Su ve Sulama Analizi</h3>
+               </div>
+               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                  <WaterSoilAnalysisPanel fieldName={activeField.name} />
+               </div>
+            </section>
+
+            <section id="sicaklik-iklim" className="scroll-mt-6">
+               <div className="flex items-center gap-2 mb-4">
+                  <ThermometerSun className="text-orange-500" size={24}/>
+                  <h3 className="text-xl font-black text-slate-800">Sıcaklık ve İklim Analizi</h3>
+               </div>
+               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                  <ClimateAnalysisPanel fieldName={activeField.name} />
+               </div>
+               <div className="mt-6">
+                  <FactorCard 
+                     title="Buhar Basıncı Açığı (VPD)"
+                     currentValue="1.8"
+                     unit="kPa"
+                     status="Dikkat"
+                     referenceRange="0.8 - 1.5 kPa"
+                     changeValue="0.4 kPa artış"
+                     changeType="up"
+                     impactDescription="Hava şu an kuru ve sıcak olduğu için bitkiniz daha fazla su kaybediyor (terliyor). Yüksek VPD, stomaların kapanmasına ve fotosentezin durmasına neden olabilir."
+                     suggestion="Planlanan sulamayı akşam serinliğinde veya gece saatlerinde yaparak buharlaşma kaybını azaltın."
+                     dataSource="Open-Meteo & Yerel Sensör"
+                     lastUpdated="10 dakika önce"
+                     detailedAnalysis="VPD, havanın sıcaklığı ve bağıl nemi arasındaki ilişkiyi gösterir. 1.5 kPa üzerindeki değerler mısır gibi bitkilerde fizyolojik strese yol açar."
+                     calculationMethod="VPD = e_s(T) - e_a(T, RH) (Tetens formülü ile hesaplanmıştır)"
+                     icon={<Wind className="text-blue-500"/>}
+                  />
+               </div>
+            </section>
+
+            <section id="besin-maddeleri" className="scroll-mt-6">
+               <div className="flex items-center gap-2 mb-4">
+                  <Beaker className="text-purple-500" size={24}/>
+                  <h3 className="text-xl font-black text-slate-800">Toprak Besin Maddeleri (NPK)</h3>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <FactorCard 
+                    title="Nitrat Azotu (NO3-N)" currentValue="45" unit="ppm" status="İyi" referenceRange="40 - 60 ppm" changeValue="2 ppm düşüş" changeType="down"
+                    impactDescription="Azot seviyesi bitkinin mevcut gelişim dönemi için ideal aralıktadır."
+                    suggestion="Mevcut gübreleme rejimini koruyun, ek bir müdahaleye gerek yoktur."
+                    dataSource="Toprak NPK Sensörü" lastUpdated="1 saat önce" icon={<Beaker className="text-emerald-500"/>}
+                 />
+                 <FactorCard 
+                    title="Alınabilir Fosfor (P2O5)" currentValue="12" unit="ppm" status="Dikkat" referenceRange="15 - 25 ppm" changeValue="1 ppm düşüş" changeType="down"
+                    impactDescription="Fosfor seviyesi referansın hemen altındadır. Bu durum kök gelişimini hafif yavaşlatabilir."
+                    suggestion="Damla sulama sistemine fosfor içerikli sıvı gübre (örn: MAP) eklenmesi önerilir."
+                    dataSource="Laboratuvar & Sensör Tahmini" lastUpdated="Dün 14:30" icon={<Beaker className="text-yellow-500"/>}
+                 />
+               </div>
+            </section>
+
+            <section id="hastalik-zararli" className="scroll-mt-6">
+               <div className="flex items-center gap-2 mb-4">
+                  <Bug className="text-red-500" size={24}/>
+                  <h3 className="text-xl font-black text-slate-800">Hastalık ve Zararlı Analizi</h3>
+               </div>
+               <FactorCard 
+                  title="Külleme (Powdery Mildew) Riski" currentValue="%78" unit="Risk Skoru" status="Dikkat" referenceRange="<%40" changeValue="%15 artış" changeType="up"
+                  impactDescription="Yüksek nem ve sıcaklıklar mantar sporlarının çimlenmesi için çok uygun bir ortam oluşturuyor."
+                  suggestion="Önümüzdeki 48 saat içerisinde yaprak hastalıklarına karşı koruyucu fungisit uygulaması yapılması şiddetle tavsiye edilir."
+                  dataSource="Yapay Zeka Hastalık Modeli" lastUpdated="30 dakika önce"
+                  detailedAnalysis="Model, 'Yaprak Islaklığı Süresi' ve 'VPD' değerlerini kullanarak risk hesaplar."
+                  calculationMethod="Risk = f(T_avg, Bağıl_Nem, Yaprak_Islaklık_Süresi)" icon={<Bug className="text-red-500"/>}
+               />
+            </section>
+            
+            <section id="tarimsal-islemler" className="scroll-mt-6">
+               <div className="flex items-center gap-2 mb-4">
+                  <ListChecks className="text-teal-600" size={24}/>
+                  <h3 className="text-xl font-black text-slate-800">Son Tarımsal İşlemler</h3>
+               </div>
+               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                 <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 rounded-xl border border-slate-100 bg-slate-50">
+                      <div className="flex items-center gap-3">
+                         <div className="bg-blue-100 text-blue-600 p-2 rounded-lg"><Droplets size={20}/></div>
+                         <div><h4 className="font-bold text-slate-800">Koruyucu Sulama</h4><p className="text-xs font-medium text-slate-500">25mm su uygulandı</p></div>
+                      </div>
+                      <div className="text-right"><span className="block text-sm font-black text-slate-700">Dün, 18:30</span><span className="text-[10px] font-bold text-emerald-600">Başarılı</span></div>
+                    </div>
+                 </div>
+               </div>
+            </section>
+
+            <section id="birlesik-risk" className="scroll-mt-6">
+               <div className="flex items-center gap-2 mb-4">
+                  <ShieldAlert className="text-slate-700" size={24}/>
+                  <h3 className="text-xl font-black text-slate-800">Birleşik Stres Analizi</h3>
+               </div>
+               <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                  <div className="space-y-4">
+                     <div className="p-4 rounded-2xl bg-orange-50 border border-orange-200 flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div className="flex items-center gap-3">
+                           <div className="bg-orange-100 p-2 rounded-lg"><ThermometerSun className="text-orange-600"/></div>
+                           <span className="font-black text-orange-400 text-lg">+</span>
+                           <div className="bg-orange-100 p-2 rounded-lg"><Droplets className="text-orange-600"/></div>
+                        </div>
+                        <div className="flex-1 text-center md:text-left">
+                           <h4 className="font-bold text-orange-900">Yüksek Sıcaklık + Düşük Toprak Nemi</h4>
+                           <p className="text-xs text-orange-800 mt-1">Bitkinin terleme hızı artarken, topraktan su alamaması hücre ölümlerine yol açar.</p>
+                        </div>
+                        <div className="text-center md:text-right">
+                           <span className="text-[10px] font-bold text-orange-600 uppercase block mb-1">Mevcut Risk</span><span className="text-lg font-black text-orange-700">%45</span>
+                        </div>
+                     </div>
+                  </div>
+               </div>
+            </section>
+          </div>
+        </div>
+      ) : activeMode === 'spectral' ? (
         <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
