@@ -3,21 +3,29 @@ import { io } from 'socket.io-client';
 import { 
   LayoutDashboard, Droplets, Thermometer, FlaskConical, 
   Wind, Leaf, Activity, ArrowRightLeft, History, RotateCcw, 
-  Settings, Zap, AlertTriangle, CheckCircle2, ChevronRight 
+  Settings, Zap, AlertTriangle, CheckCircle2, ChevronRight,
+  Sun, ShieldAlert, ShieldCheck, MapPin
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, 
   Tooltip as RechartsTooltip, ResponsiveContainer 
 } from 'recharts';
+import CrisisLab from './components/CrisisLab';
+import TerraMindLogo from './components/TerraMindLogo';
+import { REALISTIC_FARMS } from './data/seedFarms';
 
 const socket = io('http://localhost:3001');
 
 function App() {
   const [activeTab, setActiveTab] = useState('overview');
+  const [userRole, setUserRole] = useState<'admin' | 'user'>('admin');
+  const [selectedFarmId, setSelectedFarmId] = useState<string>(REALISTIC_FARMS[0].id);
   const [systemState, setSystemState] = useState<any>(null);
   const [effectiveState, setEffectiveState] = useState<any>(null);
   const [impactEvent, setImpactEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  const activeFarm = REALISTIC_FARMS.find(f => f.id === selectedFarmId) || REALISTIC_FARMS[0];
 
   useEffect(() => {
     socket.on('state:init', (data) => {
@@ -38,11 +46,21 @@ function App() {
       setTimeout(() => setImpactEvent(null), 8000); // clear after 8s
     });
 
+    socket.on('farm:init', (farm) => {
+      if (farm?.id) setSelectedFarmId(farm.id);
+    });
+
+    socket.on('farm:changed', (farm) => {
+      if (farm?.id) setSelectedFarmId(farm.id);
+    });
+
     return () => {
       socket.off('state:init');
       socket.off('state:update');
       socket.off('state:effective');
       socket.off('analysis:updated');
+      socket.off('farm:init');
+      socket.off('farm:changed');
     };
   }, []);
 
@@ -94,6 +112,7 @@ function App() {
 
   const tabs = [
     { id: 'overview', name: 'Yönetim Merkezi', icon: <LayoutDashboard size={18} /> },
+    { id: 'crisis-lab', name: 'Saha Kriz Simülasyon Merkezi', icon: <AlertTriangle size={18} className="text-amber-400" /> },
     { id: 'water', name: 'Su Durumu', icon: <Droplets size={18} /> },
     { id: 'soil', name: 'Toprak Besinleri', icon: <FlaskConical size={18} /> },
     { id: 'climate', name: 'Sıcaklık & Hava', icon: <Wind size={18} /> },
@@ -111,12 +130,16 @@ function App() {
     <div className="flex h-screen bg-[#090E0D] text-slate-200 overflow-hidden font-sans">
       {/* Sidebar */}
       <div className="w-64 bg-[#0E1614] border-r border-[#1B2926] flex flex-col z-10 shadow-2xl">
-        <div className="p-6 border-b border-[#1B2926]">
-          <div className="flex items-center gap-2 text-emerald-400 font-bold text-2xl tracking-tighter">
-            <Leaf className="text-emerald-500" size={28} />
-            TerraMind <span className="text-white text-[10px] bg-emerald-600 px-2 py-0.5 rounded-full uppercase tracking-widest translate-y-[-2px]">V4</span>
+        <div className="p-5 border-b border-[#1B2926]">
+          <div className="flex items-center gap-2.5">
+            <TerraMindLogo size={32} badge={true} />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 font-black text-lg text-white tracking-tight">
+                TerraMind <span className="text-emerald-400 text-[9px] bg-emerald-500/20 border border-emerald-500/40 px-1.5 py-0.2 rounded-full uppercase tracking-wider font-mono">PRO</span>
+              </div>
+              <p className="text-[11px] text-slate-400 font-medium">Saha Kriz & Yönetim</p>
+            </div>
           </div>
-          <p className="text-xs text-slate-400 mt-2 font-medium tracking-wide">Yönetim Merkezi</p>
         </div>
         <div className="flex-1 overflow-y-auto py-4">
           <ul className="space-y-1 px-3">
@@ -168,11 +191,47 @@ function App() {
             {tabs.find(t => t.id === activeTab)?.name}
             {isSimulated && <span className="text-[10px] uppercase bg-amber-500/20 text-amber-400 px-2 py-1 rounded-full font-bold border border-amber-500/30">Müdahale Edildi</span>}
           </h1>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2 text-sm text-slate-300">
-              <span className="text-slate-500">Aktif Tarla:</span>
-              <span className="font-semibold text-white">Malatya, Kuzey Tarlası</span>
+          <div className="flex items-center gap-4">
+            {/* Hızlı Tarla Seçici Dropdown */}
+            <div className="flex items-center gap-2 bg-[#15201D] py-1.5 px-3 rounded-full border border-[#1B2926]">
+              <MapPin size={14} className="text-emerald-400 shrink-0" />
+              <span className="text-slate-500 text-xs font-semibold">Tarla:</span>
+              <select
+                value={selectedFarmId}
+                onChange={(e) => {
+                  const newId = e.target.value;
+                  setSelectedFarmId(newId);
+                  fetch('http://localhost:3001/api/admin/select-farm', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ farmId: newId })
+                  }).catch(console.error);
+                }}
+                className="bg-transparent text-xs font-bold text-white outline-none cursor-pointer pr-1"
+              >
+                {REALISTIC_FARMS.map(f => (
+                  <option key={f.id} value={f.id} className="bg-[#0E1614] text-white">
+                    {f.name} ({f.province})
+                  </option>
+                ))}
+              </select>
             </div>
+
+            {/* Role Switcher / Simulator Badge */}
+            <button
+              onClick={() => setUserRole(r => r === 'admin' ? 'user' : 'admin')}
+              title="Yetki izolasyonunu test etmek için tıklayın (admin / user)"
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${
+                userRole === 'admin'
+                  ? 'bg-amber-500/15 text-amber-400 border-amber-500/30 hover:bg-amber-500/25'
+                  : 'bg-rose-500/15 text-rose-400 border-rose-500/30 hover:bg-rose-500/25'
+              }`}
+            >
+              {userRole === 'admin' ? <ShieldCheck size={14} className="text-amber-400" /> : <ShieldAlert size={14} className="text-rose-400" />}
+              <span>Rol: <span className="uppercase font-mono">{userRole}</span></span>
+              <span className="text-[10px] text-slate-400 font-normal underline ml-1">Değiştir</span>
+            </button>
+
             <div className="flex items-center gap-2 text-sm bg-[#15201D] py-1.5 px-3 rounded-full border border-[#1B2926]">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
               Bağlantı Aktif
@@ -204,12 +263,37 @@ function App() {
             </div>
           )}
 
+          {/* Saha Kriz Simülasyon Merkezi (Crisis Lab) */}
+          {activeTab === 'crisis-lab' && (
+            userRole === 'admin' ? (
+              <CrisisLab selectedFarmId={selectedFarmId} onSelectFarm={setSelectedFarmId} />
+            ) : (
+              <div className="p-10 text-center bg-rose-950/30 border border-rose-500/40 rounded-3xl max-w-lg mx-auto my-16 backdrop-blur-md shadow-2xl">
+                <div className="w-16 h-16 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-center mx-auto mb-4 text-rose-500">
+                  <ShieldAlert size={36} />
+                </div>
+                <h3 className="text-2xl font-black text-white">Erişim Yetkisi Yetersiz</h3>
+                <p className="text-sm text-slate-300 mt-2 leading-relaxed">
+                  "Saha Kriz Simülasyon Merkezi (Crisis Lab)" modülüne yalnızca <code className="bg-rose-900/50 text-rose-300 px-2 py-0.5 rounded font-mono">role === 'admin'</code> yetkisine sahip kullanıcılar erişebilir. Standart kullanıcı/çiftçi hesapları bu modülü görüntüleyemez.
+                </p>
+                <button
+                  onClick={() => setUserRole('admin')}
+                  className="mt-6 px-6 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-900/40"
+                >
+                  Admin Olarak Devam Et (role === 'admin')
+                </button>
+              </div>
+            )
+          )}
+
           {activeTab === 'overview' && (
             <div className="space-y-8 animate-in fade-in duration-500">
               
               {/* Vitals Overview */}
               <div>
-                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Temel Parametreler</h2>
+                <h2 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">
+                  {activeFarm.name} ({activeFarm.crop}) — Temel Telemetri
+                </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatCard title="Toprak Nemi" value={`${effectiveState.soilMoisture}%`} icon={<Droplets className="text-sky-400" />} override={systemState.overrides.soilMoisture} trend={waterRes.stressStatus} trendUp={waterRes.stressStatus === 'Stres Riski'} />
                   <StatCard title="Hava Sıcaklığı" value={`${effectiveState.temperature}°C`} icon={<Thermometer className="text-rose-400" />} override={systemState.overrides.temperature} trend={climateRes.tempStatus} />
@@ -623,6 +707,4 @@ function ScenarioCard({ title, description, icon, onRun }: any) {
   );
 }
 
-// @ts-ignore
-import { Sun } from 'lucide-react';
 export default App;

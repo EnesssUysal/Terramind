@@ -21,6 +21,11 @@ export interface Field {
   activeSensors: number;
   tasksCount: number;
   nextAction: string;
+  crop?: string;
+  lat?: number;
+  lng?: number;
+  polygon?: [number, number][];
+  ndviScore?: number;
   sensors: {
     moisture: { value: number; change: number; status: 'up' | 'down' | 'stable'; recommendation: string };
     temperature: { value: number; change: number; status: 'up' | 'down' | 'stable'; recommendation: string };

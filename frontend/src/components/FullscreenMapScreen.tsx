@@ -30,11 +30,26 @@ export default function FullscreenMapScreen({ onBack, selectedFieldId }: Fullscr
     return { color: '#ef4444', fill: '#f87171', status: 'Kuraklık / Kritik', icon: <AlertTriangle className="text-red-500" /> };
   };
 
-  // Malatya/Kayseri bölgesi için gerçekçi tarla koordinatları (Mock)
+  // Malatya, Kayseri ve Manisa için gerçekçi parsel poligonları
   const fieldPolygons: Record<string, [number, number][]> = {
-    '1': [[38.355, 38.310], [38.355, 38.315], [38.351, 38.315], [38.351, 38.310]],
-    '2': [[38.351, 38.310], [38.351, 38.315], [38.348, 38.313], [38.348, 38.308]],
-    '3': [[38.356, 38.316], [38.356, 38.320], [38.352, 38.320], [38.352, 38.316]],
+    '1': [
+      [38.4210, 38.3695],
+      [38.4230, 38.3725],
+      [38.4215, 38.3745],
+      [38.4195, 38.3710]
+    ], // Malatya (Battalgazi)
+    '2': [
+      [38.3930, 35.4850],
+      [38.3955, 35.4930],
+      [38.3885, 35.4950],
+      [38.3860, 35.4870]
+    ], // Kayseri (Develi)
+    '3': [
+      [38.3525, 28.5065],
+      [38.3550, 28.5140],
+      [38.3490, 28.5160],
+      [38.3465, 28.5085]
+    ], // Manisa (Alaşehir)
   };
 
   const handleScan = () => {
@@ -46,15 +61,17 @@ export default function FullscreenMapScreen({ onBack, selectedFieldId }: Fullscr
   };
 
   const activeColorProfile = getNdviColor(activeField.ndvi);
-  const centerPosition = fieldPolygons[activeField.id][0];
+  const centerPosition: [number, number] = activeField.lat && activeField.lng
+    ? [activeField.lat, activeField.lng]
+    : (fieldPolygons[activeField.id] ? fieldPolygons[activeField.id][0] : [38.4200, 38.3700]);
 
   return (
     <div className="relative w-full h-screen bg-slate-900 overflow-hidden font-sans flex flex-col">
-      
+
       {/* ÜST BAR (Z-Index ile haritanın üstünde) */}
       <div className="absolute top-0 left-0 right-0 z-[1000] p-4 flex justify-between items-start pointer-events-none">
-        <button 
-          onClick={onBack} 
+        <button
+          onClick={onBack}
           className="pointer-events-auto bg-white/90 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-white/20 hover:bg-white transition-all"
         >
           <ArrowLeft size={24} className="text-slate-800" />
@@ -65,7 +82,7 @@ export default function FullscreenMapScreen({ onBack, selectedFieldId }: Fullscr
             <Layers size={18} className="text-emerald-400 mr-2" />
             <span className="text-white text-xs font-bold tracking-wider uppercase">Katman: NDVI İndeksi</span>
           </div>
-          <button 
+          <button
             onClick={handleScan}
             className="bg-emerald-600/90 hover:bg-emerald-500 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-emerald-500/50 shadow-lg flex items-center transition-all"
           >
@@ -78,7 +95,7 @@ export default function FullscreenMapScreen({ onBack, selectedFieldId }: Fullscr
       {/* YAPAY ZEKA VE UYDU KONTROL PANELİ */}
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-[1000] w-11/12 max-w-4xl pointer-events-none">
         <div className="pointer-events-auto bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/50 p-6 flex flex-col md:flex-row gap-6 items-center">
-          
+
           <div className="flex-1 w-full border-r border-slate-200 pr-6">
             <div className="flex items-center gap-2 mb-2">
               <Satellite size={20} className="text-blue-600" />
@@ -87,18 +104,17 @@ export default function FullscreenMapScreen({ onBack, selectedFieldId }: Fullscr
             <p className="text-sm font-medium text-slate-500 mb-4">
               Kızılötesi ve görünür ışık bantları kullanılarak klorofil yoğunluğu hesaplanmıştır. Son veri çekimi: <strong className="text-slate-700">{lastUpdate}</strong>.
             </p>
-            
+
             {/* Hızlı Tarla Seçici */}
             <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2">
               {mockFields.map(field => (
                 <button
                   key={field.id}
                   onClick={() => setActiveField(field)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border transition-all ${
-                    activeField.id === field.id 
-                    ? 'bg-slate-800 text-white border-slate-800' 
-                    : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
-                  }`}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap border transition-all ${activeField.id === field.id
+                      ? 'bg-slate-800 text-white border-slate-800'
+                      : 'bg-slate-100 text-slate-500 border-slate-200 hover:bg-slate-200'
+                    }`}
                 >
                   {field.name}
                 </button>
@@ -130,15 +146,15 @@ export default function FullscreenMapScreen({ onBack, selectedFieldId }: Fullscr
             <div className="w-full h-1 bg-emerald-500/50 absolute top-1/2 shadow-[0_0_20px_#10b981] animate-scan"></div>
           </div>
         )}
-        
-        <MapContainer 
-          center={centerPosition} 
-          zoom={15} 
+
+        <MapContainer
+          center={centerPosition}
+          zoom={15}
           zoomControl={false}
           className="w-full h-full"
         >
           <MapController center={centerPosition} />
-          
+
           {/* Gerçek Uydu Görüntüsü (Esri World Imagery) */}
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
@@ -151,14 +167,14 @@ export default function FullscreenMapScreen({ onBack, selectedFieldId }: Fullscr
             const isSelected = field.id === activeField.id;
             const profile = getNdviColor(field.ndvi);
             const coordinates = fieldPolygons[field.id] || fieldPolygons['1'];
-            
+
             return (
               <Polygon
                 key={field.id}
                 positions={coordinates}
-                pathOptions={{ 
-                  color: profile.color, 
-                  fillColor: profile.fill, 
+                pathOptions={{
+                  color: profile.color,
+                  fillColor: profile.fill,
                   fillOpacity: isSelected ? 0.6 : 0.3,
                   weight: isSelected ? 3 : 1,
                   dashArray: isSelected ? '' : '5, 5'

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Polygon, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { io } from 'socket.io-client';
+import TerraMindLogo from './TerraMindLogo';
 
 const socket = io('http://localhost:3001');
 
@@ -19,14 +20,75 @@ export interface FieldItem {
   polygon?: [number, number][];
 }
 
+const DEFAULT_HOME_FIELDS: FieldItem[] = [
+  {
+    id: '1793109118563',
+    name: 'Üzüm Bağı',
+    location: 'Manisa / Yunusemre',
+    area: '63.7 Dönüm',
+    status: 'Sağlıklı',
+    lat: 38.7377604815913,
+    lng: 27.434862654640995,
+    crop: 'Üzüm',
+    ndviScore: 0.84,
+    moisture: 42,
+    polygon: [
+      [38.7377604815913, 27.434862654640995],
+      [38.7389915490909, 27.43727966132707],
+      [38.74011468692338, 27.43641143758065],
+      [38.740909681568176, 27.435487820011026],
+      [38.74005918493525, 27.433410330488574]
+    ]
+  },
+  {
+    id: '1793109250136',
+    name: 'Kayısı Tarlası',
+    location: 'Malatya / Battalgazi',
+    area: '16.8 Dönüm',
+    status: 'Sağlıklı',
+    lat: 38.44961407555695,
+    lng: 38.35766552927494,
+    crop: 'Kayısı',
+    ndviScore: 0.84,
+    moisture: 42,
+    polygon: [
+      [38.44961407555695, 38.35766552927494],
+      [38.44907632348891, 38.35582903387487],
+      [38.44825288286856, 38.35592569152751],
+      [38.448673006808086, 38.35785884458023]
+    ]
+  },
+  {
+    id: '1793109326110',
+    name: 'Buğday Tarlası',
+    location: 'Kayseri / Develi',
+    area: '55.5 Dönüm',
+    status: 'Sağlıklı',
+    lat: 38.36509719705687,
+    lng: 35.453427189205456,
+    crop: 'Buğday',
+    ndviScore: 0.84,
+    moisture: 42,
+    polygon: [
+      [38.36509719705687, 35.453427189205456],
+      [38.36664502101616, 35.45328757259611],
+      [38.366599861712785, 35.44994129644126],
+      [38.36505203678775, 35.44936135052545]
+    ]
+  }
+];
+
 // MainScreen'den gelen özellikleri (props) tanımlıyoruz
 export interface HomeTabProps {
   selectedField?: any;
+  fields?: FieldItem[];
+  selectedFieldId?: string;
   onSelectField?: (id: string) => void;
   onOpenDetail?: (page: string) => void;
   onSwitchToAi?: () => void;
   onSwitchToProfile?: () => void;
   onSwitchToFields?: () => void;
+  onDeleteField?: (id: string) => void;
 }
 
 const RecenterMap = ({ center }: { center: [number, number] }) => {
@@ -75,39 +137,93 @@ const getReverseGeocode = async (lat: number, lng: number): Promise<string> => {
   return `${lat.toFixed(3)}, ${lng.toFixed(3)}`;
 };
 
-export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
-  const [fields, setFields] = useState<FieldItem[]>([]);
-  const [selectedFieldId, setSelectedFieldId] = useState<string>('');
+export const HomeTab: React.FC<HomeTabProps> = ({
+  fields: propFields,
+  selectedFieldId: propSelectedFieldId,
+  onSelectField,
+  onOpenDetail,
+  onSwitchToFields,
+  onDeleteField,
+}) => {
+  const [fields, setFields] = useState<FieldItem[]>(() => {
+    if (propFields && propFields.length > 0) return propFields;
+    try {
+      const saved = localStorage.getItem('terramind_user_fields');
+      if (saved !== null) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch { }
+    return DEFAULT_HOME_FIELDS;
+  });
+
+  const [selectedFieldId, setSelectedFieldId] = useState<string>(
+    propSelectedFieldId || fields[0]?.id || '1793109118563'
+  );
 
   // Harita & Durum State'leri
   const [activeTab, setActiveTab] = useState<'RGB' | 'NDVI' | 'NEM'>('NDVI');
-  const [center, setCenter] = useState<[number, number]>([39.9208, 32.8541]);
+  const [center, setCenter] = useState<[number, number]>(() => {
+    const initField = fields.find(f => f.id === (propSelectedFieldId || fields[0]?.id)) || fields[0];
+    return initField ? [initField.lat, initField.lng] : [38.7378, 27.4349];
+  });
   const [locationName, setLocationName] = useState<string>('Konum sorgulanıyor...');
   const [weatherData, setWeatherData] = useState({ temp: 22, wind: 10, humidity: 40, isLoading: false });
   const [effectiveState, setEffectiveState] = useState<any>(null);
 
-  // Sayfa Açıldığında Kayıtlı Tarlayı Getir
+  // Sync propFields if updated by parent
   useEffect(() => {
-    const saved = localStorage.getItem('terramind_user_fields');
-    if (saved) {
-      const parsed: FieldItem[] = JSON.parse(saved);
-      if (parsed.length > 0) {
-        setFields(parsed);
-        setSelectedFieldId(parsed[0].id);
-        setCenter([parsed[0].lat, parsed[0].lng]);
-        updateLocationAndWeather(parsed[0].lat, parsed[0].lng);
-        return;
+    if (propFields !== undefined) {
+      setFields(propFields);
+    }
+  }, [propFields]);
+
+  // If selected field is deleted or changed, auto-select first available
+  useEffect(() => {
+    if (fields.length > 0 && !fields.some((f) => f.id === selectedFieldId)) {
+      const nextField = fields[0];
+      setSelectedFieldId(nextField.id);
+      setCenter([nextField.lat, nextField.lng]);
+      updateLocationAndWeather(nextField.lat, nextField.lng);
+      if (onSelectField) onSelectField(nextField.id);
+    }
+  }, [fields, selectedFieldId, onSelectField]);
+
+  // Sync propSelectedFieldId if updated by parent
+  useEffect(() => {
+    if (propSelectedFieldId && propSelectedFieldId !== selectedFieldId) {
+      setSelectedFieldId(propSelectedFieldId);
+      const target = fields.find((f) => f.id === propSelectedFieldId);
+      if (target) {
+        setCenter([target.lat, target.lng]);
+        updateLocationAndWeather(target.lat, target.lng);
       }
     }
-    updateLocationAndWeather(39.9208, 32.8541);
+  }, [propSelectedFieldId, fields]);
+
+  // Sayfa İlk Açıldığında
+  useEffect(() => {
+    const current = fields.find((f) => f.id === selectedFieldId) || fields[0];
+    if (current) {
+      setCenter([current.lat, current.lng]);
+      updateLocationAndWeather(current.lat, current.lng);
+    }
 
     // Socket.io dinleyicileri
     socket.on('state:effective', (data) => {
       setEffectiveState(data);
     });
 
+    socket.on('farm:changed', (farm) => {
+      if (farm && farm.lat && farm.lng) {
+        setCenter([farm.lat, farm.lng]);
+        updateLocationAndWeather(farm.lat, farm.lng);
+      }
+    });
+
     return () => {
       socket.off('state:effective');
+      socket.off('farm:changed');
     };
   }, []);
 
@@ -143,11 +259,18 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
   // Seçilen Tarla Değiştiğinde
   const handleSelectField = async (id: string) => {
     setSelectedFieldId(id);
+    if (onSelectField) onSelectField(id);
     const target = fields.find((f) => f.id === id);
     if (target) {
       setCenter([target.lat, target.lng]);
       await updateLocationAndWeather(target.lat, target.lng);
     }
+    // Backend senkronizasyonu
+    fetch('http://localhost:3001/api/admin/select-farm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ farmId: id })
+    }).catch(() => { });
   };
 
   // Cihazın Canlı GPS Konumunu Alma
@@ -176,7 +299,7 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
     [lat - 0.0018, lng - 0.0018],
   ];
 
-  const currentField = fields.find((f) => f.id === selectedFieldId);
+  const currentField = fields.find((f) => f.id === selectedFieldId) || fields[0];
 
   const getPolygonStyle = () => {
     switch (activeTab) {
@@ -192,25 +315,62 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-emerald-50/50 via-slate-50 to-teal-50/30 text-slate-800 pb-28">
-      {/* Header */}
-      <header className="flex items-center justify-between p-4 bg-white/90 backdrop-blur-md border-b border-emerald-100 sticky top-0 z-20 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-white font-bold shadow-md shadow-emerald-500/20 text-lg">
-            🌱
+      {/* 1. HEADER & NAVBAR: Orijinal Ana Logo (h-9 / 36px) ve Hızlı Tarla Seçici */}
+      <header className="flex flex-wrap items-center justify-between p-3.5 sm:p-4 bg-white/95 backdrop-blur-md border-b border-emerald-100 sticky top-0 z-20 shadow-sm gap-3">
+        {/* Sol: Orijinal Logo ve Marka Metni (Tıklandığında Anasayfaya / Dashboard'a yönlendirir) */}
+        <div
+          onClick={() => {
+            if (fields.length > 0) handleSelectField(fields[0].id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className="flex items-center gap-2.5 cursor-pointer transition-opacity hover:opacity-90 select-none group"
+          title="Ana Sayfaya / Tarlaya Odaklan"
+        >
+          <div className="h-9 w-9 flex items-center justify-center shrink-0">
+            <TerraMindLogo size={36} />
           </div>
-          <div>
-            <h1 className="text-xl font-extrabold text-slate-900 tracking-tight">TerraMind</h1>
-            <p className="text-xs text-emerald-700 font-semibold">Akıllı Tarım ve Canlı Uydu Portalı</p>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-xl font-extrabold text-slate-900 tracking-tight leading-none group-hover:text-emerald-700 transition-colors">
+                TerraMind
+              </h1>
+              <span className="text-[9px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md border border-emerald-200">
+                ÇİFTÇİ
+              </span>
+            </div>
+            <p className="text-[11px] text-emerald-700 font-semibold mt-0.5 leading-none">
+              Akıllı Tarım ve Canlı Uydu Portalı
+            </p>
           </div>
         </div>
 
-        <button
-          onClick={handleGetCurrentLocation}
-          type="button"
-          className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold px-3.5 py-2 rounded-xl transition flex items-center gap-1.5 border border-emerald-200/80 shadow-sm"
-        >
-          🎯 Mevcut Konumumu Bul
-        </button>
+        {/* Sağ: Hızlı Tarla Değiştirici & Konum Butonu */}
+        <div className="flex items-center gap-2">
+          {/* Hızlı Tarla Seçici Dropdown */}
+          <div className="flex items-center gap-1.5 bg-emerald-50/90 border border-emerald-200/90 rounded-xl px-2.5 py-1.5 shadow-xs">
+            <span className="text-emerald-700 text-xs">📍</span>
+            <select
+              value={selectedFieldId}
+              onChange={(e) => handleSelectField(e.target.value)}
+              className="bg-transparent text-xs font-bold text-emerald-950 focus:outline-none cursor-pointer pr-1"
+            >
+              {fields.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.name} ({f.crop})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <button
+            onClick={handleGetCurrentLocation}
+            type="button"
+            className="bg-emerald-100 hover:bg-emerald-200 text-emerald-800 text-xs font-bold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-emerald-200/80 shadow-sm shrink-0"
+            title="Mevcut GPS Konumumu Bul"
+          >
+            🎯 Konum
+          </button>
+        </div>
       </header>
 
       <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto w-full">
@@ -284,8 +444,25 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
         <section className="bg-white rounded-3xl border border-emerald-100 shadow-xl overflow-hidden">
           <div className="flex flex-wrap items-center justify-between p-4 md:p-5 border-b border-slate-100 gap-3">
             <div>
-              <h2 className="text-lg font-bold text-slate-900">{currentField?.name || 'Seçili Tarla'}</h2>
-              <p className="text-xs text-slate-500 font-medium">
+              <div className="flex items-center gap-2.5">
+                <h2 className="text-lg font-bold text-slate-900">{currentField?.name || 'Seçili Tarla'}</h2>
+                {currentField && onDeleteField && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (window.confirm(`"${currentField.name}" tarlasını kayıtlardan silmek istediğinize emin misiniz?`)) {
+                        onDeleteField(currentField.id);
+                      }
+                    }}
+                    className="px-2 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200/90 rounded-lg text-xs font-bold transition flex items-center gap-1 shadow-xs"
+                    title="Bu Tarlayı Sil"
+                  >
+                    <span>🗑️</span>
+                    <span className="hidden sm:inline text-[11px]">Sil</span>
+                  </button>
+                )}
+              </div>
+              <p className="text-xs text-slate-500 font-medium mt-0.5">
                 {currentField?.crop || 'Genel'} &bull; {locationName} ({center[0].toFixed(4)}, {center[1].toFixed(4)})
               </p>
             </div>
@@ -310,11 +487,10 @@ export const HomeTab: React.FC<HomeTabProps> = ({ onOpenDetail }) => {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                      activeTab === tab
+                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all ${activeTab === tab
                         ? 'bg-emerald-600 text-white shadow-md'
                         : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                      }`}
                   >
                     {tab}
                   </button>

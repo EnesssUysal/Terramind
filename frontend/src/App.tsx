@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Eye, EyeOff, CheckCircle2, Leaf, Bell, User, CloudSun, MapPin, ChevronDown, RefreshCw, Maximize, Navigation, Zap, Droplets, ThermometerSun, Sprout, Home as HomeIcon, LayoutGrid, BarChart2, Cpu, ArrowUpRight, ArrowDownRight, Sparkles } from 'lucide-react';
 import MainScreen from './components/MainScreen';
-import WeatherRadarMap from './components/WeatherRadarMap';
+import TerraMindLogo from './components/TerraMindLogo';
 
 type ScreenType = 'splash' | 'login' | 'register' | 'otp_register' | 'success_register' | 'forgot_password' | 'otp_forgot' | 'new_password' | 'success_password' | 'home';
 
@@ -64,25 +64,7 @@ export default function App() {
                 }}
                 className="mb-8"
               >
-                <svg width="150" height="150" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="#4CAF50" />
-                      <stop offset="100%" stopColor="#1B331B" />
-                    </linearGradient>
-                  </defs>
-                  <g stroke="url(#logo-grad)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                    <path d="M 50 5 A 45 45 0 0 0 50 95" />
-                    <path d="M 20 18 Q 40 18 50 30 L 60 30 L 70 20 L 80 20" />
-                    <circle cx="80" cy="20" r="2.5" fill="#1B331B" stroke="none" />
-                    <path d="M 9 35 Q 35 35 45 50 L 55 50 L 65 40 L 85 40" />
-                    <circle cx="85" cy="40" r="2.5" fill="#1B331B" stroke="none" />
-                    <path d="M 6 55 Q 30 55 40 70 L 50 70 L 60 60 L 80 60" />
-                    <circle cx="80" cy="60" r="2.5" fill="#1B331B" stroke="none" />
-                    <path d="M 13 75 Q 25 75 35 85 L 45 85 L 55 75 L 70 75" />
-                    <circle cx="70" cy="75" r="2.5" fill="#1B331B" stroke="none" />
-                  </g>
-                </svg>
+                <TerraMindLogo size={140} badge={true} />
               </motion.div>
               
               <div className="flex flex-col items-center text-center">
@@ -110,25 +92,7 @@ export default function App() {
           >
             <div className="flex w-full max-w-md flex-col items-center">
               <div className="mb-8 flex flex-col items-center justify-center">
-                <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="logo-grad-small" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="#4CAF50" />
-                      <stop offset="100%" stopColor="#1B331B" />
-                    </linearGradient>
-                  </defs>
-                  <g stroke="url(#logo-grad-small)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                    <path d="M 50 5 A 45 45 0 0 0 50 95" />
-                    <path d="M 20 18 Q 40 18 50 30 L 60 30 L 70 20 L 80 20" />
-                    <circle cx="80" cy="20" r="2.5" fill="#1B331B" stroke="none" />
-                    <path d="M 9 35 Q 35 35 45 50 L 55 50 L 65 40 L 85 40" />
-                    <circle cx="85" cy="40" r="2.5" fill="#1B331B" stroke="none" />
-                    <path d="M 6 55 Q 30 55 40 70 L 50 70 L 60 60 L 80 60" />
-                    <circle cx="80" cy="60" r="2.5" fill="#1B331B" stroke="none" />
-                    <path d="M 13 75 Q 25 75 35 85 L 45 85 L 55 75 L 70 75" />
-                    <circle cx="70" cy="75" r="2.5" fill="#1B331B" stroke="none" />
-                  </g>
-                </svg>
+                <TerraMindLogo size={80} badge={true} />
                 <span className="mt-3 text-xl font-bold tracking-[0.15em] text-[#1B331B]">
                   TERRAMIND
                 </span>
@@ -210,25 +174,7 @@ export default function App() {
           >
             <div className="flex w-full max-w-md flex-col items-center">
               <div className="mb-6 flex flex-col items-center justify-center">
-                <svg width="64" height="64" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <defs>
-                    <linearGradient id="logo-grad-register" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                      <stop offset="0%" stopColor="#4CAF50" />
-                      <stop offset="100%" stopColor="#1B331B" />
-                    </linearGradient>
-                  </defs>
-                  <g stroke="url(#logo-grad-register)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" fill="none">
-                    <path d="M 50 5 A 45 45 0 0 0 50 95" />
-                    <path d="M 20 18 Q 40 18 50 30 L 60 30 L 70 20 L 80 20" />
-                    <circle cx="80" cy="20" r="2.5" fill="#1B331B" stroke="none" />
-                    <path d="M 9 35 Q 35 35 45 50 L 55 50 L 65 40 L 85 40" />
-                    <circle cx="85" cy="40" r="2.5" fill="#1B331B" stroke="none" />
-                    <path d="M 6 55 Q 30 55 40 70 L 50 70 L 60 60 L 80 60" />
-                    <circle cx="80" cy="60" r="2.5" fill="#1B331B" stroke="none" />
-                    <path d="M 13 75 Q 25 75 35 85 L 45 85 L 55 75 L 70 75" />
-                    <circle cx="70" cy="75" r="2.5" fill="#1B331B" stroke="none" />
-                  </g>
-                </svg>
+                <TerraMindLogo size={64} badge={true} />
                 <span className="mt-2 text-lg font-bold tracking-[0.15em] text-[#1B331B]">
                   TERRAMIND
                 </span>

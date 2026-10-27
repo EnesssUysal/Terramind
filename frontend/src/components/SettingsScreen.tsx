@@ -4,9 +4,10 @@ import { motion } from 'motion/react';
 
 interface SettingsScreenProps {
   onBack: () => void;
+  onLogout?: () => void;
 }
 
-export default function SettingsScreen({ onBack }: SettingsScreenProps) {
+export default function SettingsScreen({ onBack, onLogout }: SettingsScreenProps) {
   const settingsGroups = [
     {
       title: 'Genel',

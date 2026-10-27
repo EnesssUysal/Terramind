@@ -27,6 +27,9 @@ const {
   addHistory, 
   parameters 
 } = require('./impactEngine');
+const { REALISTIC_FARMS } = require('./seedFarms');
+
+let activeFarm = REALISTIC_FARMS[0]; // Default: Malatya Battalgazi
 
 io.on('connection', (socket) => {
   console.log('New client connected:', socket.id);
@@ -34,13 +37,54 @@ io.on('connection', (socket) => {
   // Send initial state to the client
   socket.emit('state:init', systemState);
   socket.emit('state:effective', getEffectiveState());
+  socket.emit('farm:init', activeFarm);
 
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
   });
 });
 
-// Admin API
+// Shared & Admin Farm API
+app.get('/api/farms', (req, res) => {
+  res.json({ success: true, farms: REALISTIC_FARMS, activeFarm });
+});
+
+app.get('/api/admin/farms', (req, res) => {
+  res.json({ farms: REALISTIC_FARMS, activeFarm });
+});
+
+app.post('/api/admin/select-farm', (req, res) => {
+  const { farmId } = req.body;
+  const found = REALISTIC_FARMS.find(
+    f => f.id === farmId || 
+         f.code === farmId || 
+         (farmId === '1' && (f.id === '1793109118563' || f.province === 'Manisa')) || 
+         (farmId === '2' && (f.id === '1793109250136' || f.province === 'Malatya')) || 
+         (farmId === '3' && (f.id === '1793109326110' || f.province === 'Kayseri')) ||
+         (farmId === 'manisa-alasehir' && (f.id === '1793109118563' || f.province === 'Manisa')) ||
+         (farmId === 'malatya-battalgazi' && (f.id === '1793109250136' || f.province === 'Malatya')) ||
+         (farmId === 'kayseri-develi' && (f.id === '1793109326110' || f.province === 'Kayseri'))
+  ) || REALISTIC_FARMS[0];
+  if (found) {
+    activeFarm = found;
+    // Tarlanın baz sensör verilerini systemState.realData'ya aktar
+    systemState.realData = {
+      ...systemState.realData,
+      ...found.baseParams
+    };
+    systemState.overrides = {};
+    addHistory('FARM_SWITCH', found.name, 'N/A', found.region);
+    const effectiveState = getEffectiveState();
+    const impacts = runCalculations();
+    io.emit('farm:changed', activeFarm);
+    io.emit('state:update', systemState);
+    io.emit('state:effective', effectiveState);
+    io.emit('analysis:updated', { source: found.name, effect: 'Tarla ve Bölge Değiştirildi', impacts });
+    return res.json({ success: true, activeFarm, effectiveState });
+  }
+  res.status(404).json({ error: 'Tarla bulunamadı' });
+});
+
 app.get('/api/admin/state', (req, res) => {
   res.json(systemState);
 });
