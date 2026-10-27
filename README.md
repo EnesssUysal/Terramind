@@ -75,37 +75,48 @@ Tarım arazilerini sadece pasif grafiklerle izlemek yerine; toprak nemi, NPK den
 
 ## 📸 Görsel Önizleme & Gerçek Proje Ekranları
 
+### 🧪 Yönetici Saha Kriz Simülasyon Merkezi (Crisis Lab — Desktop & Sandbox)
+<p align="center">
+  <img src="screenshots/Screenshot_6.png" alt="Saha Kriz Simülasyon Merkezi (Crisis Lab)" width="100%" style="border-radius: 12px; border: 1px solid #10b98133; box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);" />
+</p>
+<p align="center"><i>3 stratejik tarım bölgesinde (Manisa, Malatya, Kayseri) çok parametreli stres testleri, NPK manipülasyonu, vana arıza enjektörleri ve Leaflet dinamik parsel haritası.</i></p>
+
+### 📱 Çiftçi Mobil Arayüzü & Zirai Karar Destek Ekranları
+
 <div align="center">
   <table>
     <tr>
-      <td width="50%" align="center">
-        <b>📱 Çiftçi Mobil Dashboard & Saha Haritası</b><br/><br/>
-        <img src="docs/assets/harita-gorunumu.png" alt="Saha Haritası & Dashboard" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" />
-        <p align="left"><i>Sadeleştirilmiş gösterge paneli, TKGM uydu parsel haritası, canlı NPK/nem göstergeleri ve otonom sulama kontrolü.</i></p>
+      <td width="33%" align="center">
+        <b>🌿 Ana Sayfa & Canlı İklim Analizi</b><br/><br/>
+        <img src="screenshots/Screenshot_1.png" alt="Ana Sayfa ve Uydu Portalı" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" /><br/>
+        <p align="left"><i>Üzüm Bağı canlı uydu görünümü, sıcaklık (18.4°C), toprak nemi (%57) ve rüzgar hızı göstergeleri.</i></p>
       </td>
-      <td width="50%" align="center">
-        <b>🤖 Edge AI & 3D Toprak Kesiti (Analiz Merkezi)</b><br/><br/>
-        <img src="docs/assets/akilli-analiz.png" alt="Akıllı Analiz Merkezi" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" />
-        <p align="left"><i>Kademeli analiz akışı, 3D kök derinliği nem katmanları ve yaprak stres/hastalık erken tespit modeli.</i></p>
+      <td width="33%" align="center">
+        <b>🌾 Tarlalarım & Parsel Portföyü</b><br/><br/>
+        <img src="screenshots/Screenshot_2.png" alt="Tarlalarım ve Parsellerim" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" /><br/>
+        <p align="left"><i>136.0 dönümlük toplam arazi portföyü, aktif tarla seçimi, NDVI canlılık skoru (+0.84) ve tarla yönetimi.</i></p>
       </td>
-    </tr>
-    <tr>
-      <td width="50%" align="center">
-        <b>🗺️ IDW Enterpolasyonlu Dijital İkiz (Digital Twin)</b><br/><br/>
-        <img src="docs/assets/dijital-ikiz.png" alt="Dijital İkiz Isı Haritası" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" />
-        <p align="left"><i>Canvas üzerinde piksel piksel enterpole edilen canlı telemetri ısı haritası ve kablosuz sensör düğüm topolojisi.</i></p>
-      </td>
-      <td width="50%" align="center">
-        <b>⛓️ Kriptografik Karbon MRV Defteri & Hibe Eşleştirici</b><br/><br/>
-        <img src="docs/assets/karbon-mrv.png" alt="Karbon MRV Defteri" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" />
-        <p align="left"><i>FNV-1a hash zinciriyle mühürlenmiş su/yakıt tasarruf kayıtları ve IPARD III hibe simülatörü.</i></p>
+      <td width="33%" align="center">
+        <b>🧠 Canlı Zirai Karar Destek (DSS)</b><br/><br/>
+        <img src="screenshots/Screenshot_3.png" alt="Zirai Karar Destek ve Canlı DSS" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" /><br/>
+        <p align="left"><i>Otonom danışman durum özeti, kök su açığı uyarısı ve somut 1. Sulama Adımı direktifleri.</i></p>
       </td>
     </tr>
     <tr>
-      <td colspan="2" align="center">
-        <b>🧠 Gemini 2.0 Flash Destekli TerraMind AI Zirai Danışman</b><br/><br/>
-        <img src="docs/assets/ai-asistan.png" alt="TerraMind AI Danışmanı" width="70%" style="border-radius: 12px; border: 1px solid #10b98133;" />
-        <p align="center"><i>Sahadaki anlık sensör telemetrisi ve hava tahminleriyle beslenen bağlamsal çiftçi karar asistanı.</i></p>
+      <td width="33%" align="center">
+        <b>💧 FAO-56 Su Bilimi & Büyüme</b><br/><br/>
+        <img src="screenshots/Screenshot_4.png" alt="FAO-56 Kök Su Bilimi ve İklim" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" /><br/>
+        <p align="left"><i>Kök bölgesi su açığı (Dr 18mm), evaporasyon dengesi, sıcaklık ve buhar açığı (VPD 1.8 kPa).</i></p>
+      </td>
+      <td width="33%" align="center">
+        <b>💬 Gemini Destekli TerraMind AI</b><br/><br/>
+        <img src="screenshots/Screenshot_5.png" alt="TerraMind AI Zirai Danışman" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" /><br/>
+        <p align="left"><i>Aktif Vision motoru ile bağlamsal çiftçi karar desteği, yaprak analizi ve anlık soru-cevap.</i></p>
+      </td>
+      <td width="33%" align="center">
+        <b>🔐 Kullanıcı Giriş & Karşılama</b><br/><br/>
+        <img src="screenshots/1.png" alt="Giriş ve Karşılama Ekranı" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" /><br/>
+        <p align="left"><i>Güvenli kimlik doğrulama, çiftçi giriş portalı ve modern mobil karşılama tasarımı.</i></p>
       </td>
     </tr>
   </table>
