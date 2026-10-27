@@ -73,32 +73,39 @@ Tarım arazilerini sadece pasif grafiklerle izlemek yerine; toprak nemi, NPK den
 
 ---
 
-## 📸 Görsel Önizleme & Ekranlar
+## 📸 Görsel Önizleme & Gerçek Proje Ekranları
 
 <div align="center">
   <table>
     <tr>
       <td width="50%" align="center">
         <b>📱 Çiftçi Mobil Dashboard & Saha Haritası</b><br/><br/>
-        <img src="https://images.unsplash.com/photo-1586771107445-d3ca888129ff?auto=format&fit=crop&w=700&q=80" alt="Dashboard Preview" width="100%" style="border-radius: 12px;"/>
-        <p align="left"><i>Sadeleştirilmiş gösterge paneli, canlı NPK/nem göstergeleri ve tek tıkla otonom sulama emri.</i></p>
+        <img src="docs/assets/harita-gorunumu.png" alt="Saha Haritası & Dashboard" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" />
+        <p align="left"><i>Sadeleştirilmiş gösterge paneli, TKGM uydu parsel haritası, canlı NPK/nem göstergeleri ve otonom sulama kontrolü.</i></p>
       </td>
       <td width="50%" align="center">
-        <b>🧪 Yönetici Kriz Simülasyon Merkezi (Crisis Lab)</b><br/><br/>
-        <img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=700&q=80" alt="Crisis Lab Preview" width="100%" style="border-radius: 12px;"/>
-        <p align="left"><i>Gerçek zamanlı NPK kaydırıcıları, vana arıza enjektörleri ve don/kuraklık simülasyon haritası.</i></p>
+        <b>🤖 Edge AI & 3D Toprak Kesiti (Analiz Merkezi)</b><br/><br/>
+        <img src="docs/assets/akilli-analiz.png" alt="Akıllı Analiz Merkezi" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" />
+        <p align="left"><i>Kademeli analiz akışı, 3D kök derinliği nem katmanları ve yaprak stres/hastalık erken tespit modeli.</i></p>
       </td>
     </tr>
     <tr>
       <td width="50%" align="center">
-        <b>🛰️ CBS & Kadastral Uydu Parselizasyonu</b><br/><br/>
-        <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=700&q=80" alt="Satellite GIS Preview" width="100%" style="border-radius: 12px;"/>
-        <p align="left"><i>Esri World Imagery altlığı, Turf.js dönüm hesabı ve alt parsel sınır çizgileri.</i></p>
+        <b>🗺️ IDW Enterpolasyonlu Dijital İkiz (Digital Twin)</b><br/><br/>
+        <img src="docs/assets/dijital-ikiz.png" alt="Dijital İkiz Isı Haritası" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" />
+        <p align="left"><i>Canvas üzerinde piksel piksel enterpole edilen canlı telemetri ısı haritası ve kablosuz sensör düğüm topolojisi.</i></p>
       </td>
       <td width="50%" align="center">
-        <b>📊 IDW Dijital İkiz & MRV Karbon Zinciri</b><br/><br/>
-        <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=700&q=80" alt="Telemetry Preview" width="100%" style="border-radius: 12px;"/>
-        <p align="left"><i>Ters mesafe ağırlıklı enterpolasyonlu ısı haritası ve kriptografik tasarruf defteri.</i></p>
+        <b>⛓️ Kriptografik Karbon MRV Defteri & Hibe Eşleştirici</b><br/><br/>
+        <img src="docs/assets/karbon-mrv.png" alt="Karbon MRV Defteri" width="100%" style="border-radius: 12px; border: 1px solid #10b98133;" />
+        <p align="left"><i>FNV-1a hash zinciriyle mühürlenmiş su/yakıt tasarruf kayıtları ve IPARD III hibe simülatörü.</i></p>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" align="center">
+        <b>🧠 Gemini 2.0 Flash Destekli TerraMind AI Zirai Danışman</b><br/><br/>
+        <img src="docs/assets/ai-asistan.png" alt="TerraMind AI Danışmanı" width="70%" style="border-radius: 12px; border: 1px solid #10b98133;" />
+        <p align="center"><i>Sahadaki anlık sensör telemetrisi ve hava tahminleriyle beslenen bağlamsal çiftçi karar asistanı.</i></p>
       </td>
     </tr>
   </table>
